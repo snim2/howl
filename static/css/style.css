@@ -1,0 +1,172 @@
+/*
+ * (c) Sarah Mount, 2011
+ */
+
+
+html {
+	background:#DDDDDD;
+	font-family: Arial, sans;
+}
+
+body {
+	width:100%;
+	height:100%;
+	margin:0;
+	padding:0;
+}
+
+div.topbar {
+	position:fixed;
+	top:0px;
+	left:0px;
+	height:25px;
+	background:#111;
+	color:#EEEEEE;
+	padding:5px 35px 5px 0px; /* top right bottom left */
+	width:100%;
+	text-align:right;
+	/* for IE */
+	filter:alpha(opacity=70);
+	/* CSS3 standard */
+	opacity:0.7;
+}
+
+div.container {	
+	display:block; 
+	width: 65%;
+	text-align:center;
+	margin-top: 35px;
+	margin-left: auto;
+    margin-right: auto;
+	font-size: 1.4em;
+	padding: 0px 0px 0px 0px; /* top right bottom left */
+	color:#FFFFFF;
+}
+
+div.feedinfo {
+	background:#D00000;
+	color:#EBE0CE;
+	width:100%;
+	text-align:left;
+	border-top:8px solid #FFFFFF;
+	border-left:8px solid #FFFFFF;
+	border-right:8px solid #FFFFFF;
+	border-bottom:8px solid #FFFFFF;
+ 	padding:5px 20px 20px 20px; /* top right bottom left */
+}
+
+div.feedchart {
+	background:#BAD466;
+	color:#1A7839;
+	width:100%;
+	text-align:left;
+	border-left:8px solid #FFFFFF;
+	border-right:8px solid #FFFFFF;
+	border-bottom:8px solid #FFFFFF;
+ 	padding:5px 20px 20px 20px; /* top right bottom left */
+}
+
+div.feeddata {
+	background:#001F3C;
+	color: #85a9a7;
+	width:100%;
+	text-align:left;
+	border-left:8px solid #FFFFFF;
+	border-right:8px solid #FFFFFF;
+	border-bottom:8px solid #FFFFFF;
+ 	padding:5px 20px 20px 20px; /* top right bottom left */
+}
+
+div.feedstats {
+	background:#EBE0CE;
+	color:#26465D;
+	width:100%;
+	text-align:left;
+	border-left:8px solid #FFFFFF;
+	border-right:8px solid #FFFFFF;
+	border-bottom:8px solid #FFFFFF;
+ 	padding:5px 20px 20px 20px; /* top right bottom left */
+}
+
+div.footer {
+	background:#222222;
+	color:#EEEEEE;
+/*	margin-top:20px; */
+	padding:5px 35px 5px 0px; /* top right bottom left */
+	width:100%;
+	height:300px;
+	text-align:justify;
+	/* for IE */
+	filter:alpha(opacity=60);
+	/* CSS3 standard */
+	opacity:0.6;
+}
+
+
+
+/* Footer layout */
+
+div.centering {
+	display:block;
+	width: 90%;
+	height: 100%;
+	text-align:left;
+/*	margin-top: 35px; */
+	margin-bottom: 0px;
+	margin-left: auto;
+    margin-right: auto;
+	padding: 0px 0px 0px 0px; /* top right bottom left */
+/*	border:8px solid #FFFFFF; */
+	color:#FFFFFF;
+}
+
+
+#bottominfo{
+	background:#111111;
+	color:#EEEEEE;
+	/*	margin-top:20px; */
+	padding:0px 0px 0px 0px; /* top right bottom left */
+	width:100%;
+	height:300px;
+	/* for IE */
+	filter:alpha(opacity=70);
+	/* CSS3 standard */
+	opacity:0.7;
+}
+
+.bottomcolumn{
+	float: left;
+	width:32%;
+	margin-right: 18px;
+}
+
+.bottomright{
+	margin-right:0;
+}
+
+.bottomcolumn h3{
+	border-bottom: 4px solid #9b968f;
+	color: #EEEEEE; 
+	text-align:center;
+	padding:15px 0 0px 5px; /* top right bottom left */
+}
+
+.bottomcolumn p{
+	padding: 10px 35px 0px 5px; /* top right bottom left */
+}
+
+
+/* General tags */
+
+a:link { /* unvisited link */
+	color:#00DDDD;
+}      
+a:visited { /* visited link */
+	color:#00DD00;
+}  
+a:hover { /* mouse over link */
+	font-style:italic;
+}  
+a:active { /* selected link */
+	color:#0000DD;
+}  
