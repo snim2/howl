@@ -51,6 +51,10 @@ type Comment struct {
 	Author string // HowlUser.Id
 }
 
+type Tag struct {
+	Tag string
+}
+
 type DataStream struct { 
 	Owner HowlUser
 	Name string
@@ -58,6 +62,7 @@ type DataStream struct {
 	AccessList []HowlUser    // Users with read/write access.
 	Providers []DataProvider
 	Configuration StreamConfiguration
+	Tags []Tag
 	Comments []Comment
 }
 
