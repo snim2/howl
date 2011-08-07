@@ -1,11 +1,26 @@
-/*
- * (c) Sarah Mount, 2011
- */
+/* Simple styling for Howl.
 
+Copyright (C) Sarah Mount, 2011.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
 
 html {
 	background:#DDDDDD;
-	font-family: Arial, sans;
+	font-family: 'Istok Web', sans-serif, sans;
+	font-size: 1.0em;
 }
 
 body {
@@ -15,20 +30,93 @@ body {
 	padding:0;
 }
 
+/*
+ * Forms
+ */
+
+form {
+	width: 80%;
+	padding: 20px;
+	margin: 20px;
+}
+ 
+.form p {
+	padding-bottom:7px;
+}
+
+fieldset {
+	padding: 0 20px 20px;
+	margin: 0 0 20px;
+} 
+
+legend {
+	font-weight: bold;
+	padding: 5px;
+	margin-bottom: 0;
+	width: 200px;
+}
+ 
+label {
+	width: 6em;
+	float: left;
+	text-align: right;
+	margin-right: 0.5em;
+	display: table;
+	width: 100px;
+	margin-right: 10px;
+	vertical-align:middle;
+}
+
+label:after { content: ": " }
+ 
+#buttons {
+	text-align: right;
+	margin: -15px 0 -5px 0;
+}
+ 
+.submit input {
+	width: auto;
+	margin-left: 4.5em;
+	padding:5px;
+	text-transform:uppercase;
+}
+
+input[type=text] {
+	width:29em;
+	border:1px solid #3E4A49;
+}
+
+input.text {
+	width:29em;
+	border:1px solid #3E4A49;
+}
+
+
+/* Coloured sections */
+
 div.topbar {
 	position:fixed;
 	top:0px;
 	left:0px;
 	height:25px;
-	background:#111;
+	background:#000;
 	color:#EEEEEE;
 	padding:5px 35px 5px 0px; /* top right bottom left */
 	width:100%;
 	text-align:right;
+	font-size: 0.8em;
 	/* for IE */
 	filter:alpha(opacity=70);
 	/* CSS3 standard */
 	opacity:0.7;
+}
+
+
+div.menu {
+	width:50%;
+	margin-left:20px;
+	text-align:left;
+	float:left;
 }
 
 div.container {	
@@ -38,9 +126,16 @@ div.container {
 	margin-top: 35px;
 	margin-left: auto;
     margin-right: auto;
-	font-size: 1.4em;
 	padding: 0px 0px 0px 0px; /* top right bottom left */
 	color:#FFFFFF;
+}
+
+.container a:link {
+	color: #000000;
+}
+
+.container a:visited {
+	color: #FFFFFF;
 }
 
 div.feedinfo {
@@ -55,6 +150,32 @@ div.feedinfo {
  	padding:5px 20px 20px 20px; /* top right bottom left */
 }
 
+
+.feedinfo form {
+	background: #EBE0CE; 
+	color: #D00000;
+}
+
+.feedinfo fieldset {
+	border: 1px solid #3E4A49;
+}
+
+.feedinfo legend {
+	background: #D00000;
+	color: #EBE0CE;
+	border: 1px solid #D00000;
+}
+
+.feedinfo .button{
+	background: #D00000;
+	color: #EBE0CE;
+	border: 2px solid #EBE0CE;
+}
+
+.feedinfo textarea:focus, input:focus {
+	border: 2px solid #D00000;
+}
+
 div.feedchart {
 	background:#BAD466;
 	color:#1A7839;
@@ -65,6 +186,32 @@ div.feedchart {
 	border-bottom:8px solid #FFFFFF;
  	padding:5px 20px 20px 20px; /* top right bottom left */
 }
+
+.feedchart form {
+	background: #1A7839; 
+	color: #BAD466;
+}
+
+.feedchart fieldset {
+	border: 1px solid #3E4A49;
+}
+
+.feedchart legend {
+	background: #BAD466;
+	color: #1A7839;
+	border: 1px solid #BAD466;
+}
+
+.feedchart .button{
+	background: #BAD466;
+	color: #1A7839;
+	border: 2px solid #1A7839;
+}
+
+.feedchart textarea:focus, input:focus {
+	border: 2px solid #BAD466;
+}
+
 
 div.feeddata {
 	background:#001F3C;
@@ -77,6 +224,42 @@ div.feeddata {
  	padding:5px 20px 20px 20px; /* top right bottom left */
 }
 
+.feeddata form {
+	color: #001F3C;
+	background: #85a9a7;
+}
+
+.feeddata select {
+	color: #001F3C;
+	background: #85a9a7;
+}
+
+.feeddata option {
+	color: #001F3C;
+	background: #85a9a7;
+}
+
+.feeddata fieldset {
+	border: 1px solid #3E4A49;
+}
+
+.feeddata legend {
+	color: #85a9a7;
+	background-color: #001F3C;
+	border: 1px solid #001F3C;
+}
+
+.feeddata .submit input {
+	background: #001F3C;
+	border: 2px solid #85a9a7;
+	color: #85a9a7;
+}
+
+.feeddata textarea:focus, input:focus {
+	border: 2px solid #001F3C;
+}
+
+
 div.feedstats {
 	background:#EBE0CE;
 	color:#26465D;
@@ -87,6 +270,32 @@ div.feedstats {
 	border-bottom:8px solid #FFFFFF;
  	padding:5px 20px 20px 20px; /* top right bottom left */
 }
+
+.feedstats form {
+	background: #26465D; 
+	color: #EBE0CE;
+}
+
+.feedstats fieldset {
+	border: 1px solid #3E4A49;
+}
+
+.feedstats legend {
+	background: #EBE0CE;
+	color: #26465D;
+	border: 1px solid #EBE0CE;
+}
+
+.feedstats .button{
+	background: #EBE0CE;
+	color: #26465D;
+	border: 2px solid #26465D;
+}
+
+.feedstats textarea:focus, input:focus {
+	border: 2px solid #EBE0CE;
+}
+
 
 div.footer {
 	background:#222222;
@@ -128,6 +337,7 @@ div.centering {
 	padding:0px 0px 0px 0px; /* top right bottom left */
 	width:100%;
 	height:300px;
+	border-top:8px solid #000000;
 	/* for IE */
 	filter:alpha(opacity=70);
 	/* CSS3 standard */
@@ -159,7 +369,7 @@ div.centering {
 /* General tags */
 
 a:link { /* unvisited link */
-	color:#00DDDD;
+	color:#00DDDD; 
 }      
 a:visited { /* visited link */
 	color:#00DD00;
@@ -170,3 +380,41 @@ a:hover { /* mouse over link */
 a:active { /* selected link */
 	color:#0000DD;
 }  
+
+h4 {
+	font-weight: bold;
+}
+
+h2 {
+	border-bottom: 4px solid #FFFFFF;
+	width:50%;
+}
+
+
+select {
+	background: #111111;
+	color: #EEEEEE;
+	padding: 3px;
+	border: 0px;
+}
+
+option {
+	background: #111111;
+	color: #EEEEEE;
+	padding: 3px;
+	border: 0px;
+}
+
+button {
+	background: #111111;
+	color: #EEEEEE;
+	padding: 3px;
+}
+
+button:hover {
+	background: #EEEEEE;
+	color: #111111;
+	padding: 3px;
+}
+
+

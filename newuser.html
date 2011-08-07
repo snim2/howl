@@ -5,11 +5,7 @@
 	<title>Howl: an Internet of Things experiment</title>
 	<link href='http://fonts.googleapis.com/css?family=Istok+Web' rel='stylesheet' type='text/css'>
 	<link href="../css/style.css" rel="stylesheet" type="text/css" />
-
-    <script type="text/javascript" src="/js/dygraph-combined.js"></script>
-    <script type='text/javascript' src='http://www.google.com/jsapi'></script> 
     <script type="text/javascript" src="/js/howl.js"></script>
-
   </head>
   <body>
 
@@ -20,30 +16,28 @@
 	  <select name="userform"  ONCHANGE="topbar_redirect(this);">
 	  	<option>{User}</option>
 	  	<option><a href="{Signout}">Sign out</a></option>
-	  </select><noscript><INPUT type="submit" value="Go" name=submit1></noscript>
+	  </select><noscript><INPUT type="submit" value="Go" name="submit1"/></noscript>
 	</div>
 
 	<div class="container">
 
 	  <div class="feedinfo">
-		<h2>Feed information</h2>
-		<img src="http://maps.googleapis.com/maps/api/staticmap?sensor=false&size=350x350&center=WV1 1SB, UK&markers=color:red%7Clabel:S%7CWV1 1SB, UK"/>
+		<h2>Your Profile</h2>
+	  	<form action="/createnewuser" method="post" class="form">
+	  	  <div>
+			<fieldset>
+			  <legend>Create new profile</legend>
+	  		  <p><label for="name">Your name</label><input type="text" name="name"/></p>
+	  		  <p><label for="url">Homepage</label><input type="text" name="url"/></p>
+	  		  <p><label for="about">About you</label><textarea name="about" rows="5" cols="44"></textarea></p>
 
+			  <p><input type="checkbox" name="startupdocs" value="docs" />Display documentation when you log in<p />
+
+	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Create"/></p>
+			</fieldset>
+	  	  </div>
+	  	</form>
 	  </div>
-
-	  <div class="feedchart">
-		<h3>Datastream</h3> 
-		<div id='dg_div' style='width: 700px; height: 240px;'></div> 
-	  </div>
-
-	  <div class="feeddata">
-		<h3>Data</h3> 
-	  </div>
-
-	  <div class="feedstats">
-		<h3>Statistics</h3> 
-	  </div>
-
 	</div> <!-- END CONTAINER -->
 
 

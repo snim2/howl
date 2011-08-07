@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<title>Howl: an Internet of Things experiment</title>
+	<link href='http://fonts.googleapis.com/css?family=Istok+Web' rel='stylesheet' type='text/css'>
+	<link href="../css/style.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="/js/howl.js"></script>
+  </head>
+  <body>
+
+	<div class="topbar">
+	  <div class="menu">
+		<a href="/">Dashboard</a> | Help
+	  </div>
+	  Hi, {User} | <a href="{Signout}">Sign out</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	</div>
+
+	<div class="container">
+
+	  <div class="feedinfo">
+		<h2>Your data streams</h2>
+		{.section OwnedStreams}
+		{.repeated section OwnedStreams}
+		<h3><a href="{Url}">{Name|html}</a></h3>
+		<p>
+		  {Description|html}
+		</p>
+		{.end}
+		{.or}
+		<p>You currently have no data streams defined, why not <a href="/newstream">create one!</a></p>
+		{.end}
+	  </div>
+
+	  <div class="feedchart">
+		<h2>Data streams shared with you</h2> 
+
+		{.section SharedStreams}
+		{.repeated section SharedStreams}
+		<h3><a href="{Url}">{Name|html}</a></h3>
+		<p>
+		  {Description|html}
+		</p>
+		{.end}
+		{.or}
+		<p>No users have shared data streams with you, why not <a href="/newstream">create one</a> of your own!</p>
+		{.end}
+
+	  </div>
+
+	  <div class="feeddata">
+	  	<h2>Create a new stream</h2>
+	  	<form action="/newstream" method="post" class="form">
+	  	  <div>
+			<fieldset>
+			  <legend>Create new stream</legend>
+	  		  <p><label for="name">Name</label><input type="text" name="name"/></p>
+	  		  <p><label for="description">Description</label><textarea name="description" rows="5" cols="44"></textarea></p>
+
+			  <h4>Periodically pull data from a URL</h4>
+			  <p><label for="pullurl">URL</label><input type="text" name="pullurl"/></p>
+
+			  <h4>Configure services to push data to</h4>
+			  <p><strong>Pachube</strong></p>
+	  		  <p><label for="pachubekey">API key</label><input type="text" name="pachubekey"/></p>
+	  		  <p><label for="pachubefeedid">Feed</label><input type="text" name="pachubefeedid"/></p>
+			  <p><strong>Twitter</strong></p>
+	  		  <p><label for="twitteraccount">Account</label><input type="text" name="twitteraccount"/></p>
+	  		  <p><label for="twittertoken">Token</label><input type="text" name="twittertoken"/></p>
+
+			  <h4>Add data providers to this stream</h4>
+			  <p>
+				{.section OwnedProviders}
+				<select>
+			  	  {.repeated section OwnedProviders}
+			  	  <option value="{Name}">{Name}</option>
+				  {.end}
+				</select>
+				{.or}
+				You have no data providers defined, why not <a href="/newuser">create one!</a>
+			  </p>
+			  {.end}
+	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Create"/></p>
+			</fieldset>
+	  	  </div>
+	  	</form>
+	  </div>
+
+	  <!-- <div class="feedstats"> -->
+	  <!-- 	<h2>FOOBAR</h2> -->
+	  <!-- </div> -->
+
+	</div> <!-- END CONTAINER -->
+
+
+	<div id="bottominfo">
+		<div class="centering">
+			<!-- bottom left information -->
+			<div class="bottomcolumn">
+			  <h3>Help</h3>
+			  <ul>
+				<li>Documentation coming soon...</li>
+				<li>Got issues? Try our <a href="https://github.com/snim2/howl/issues">tracker</a></li>
+			  </ul>
+			</div>
+			<!-- bottom center information -->
+			<div class="bottomcolumn">
+				<h3>Technologies</h3>
+				<ul>
+					<li><a href="http://code.google.com/appengine/" title="Google App Engine">Google App Engine</a></li>
+					<li><a href="http://www.gnu.org/software/emacs/" title="The One True Editor">Emacs</a></li>
+					<li><a href="http://www.golang.org/" title="Go programming language">GO</a></li>
+					<li><a href="http://www.usingcsp.com/" title="Communicating Sequential Processes">Communicating Sequential Processes</a></li>
+				</ul>
+			</div>
+			<!-- bottom right information -->
+			<div class="bottomcolumn bottomright">
+			  <h3>Authors</h3>
+			  <ul>
+				<li><a href="http://snim2.org">Sarah Mount</a></li>
+				<li><a href="http://www.wlv.ac.uk">University of Wolverhampton</a></li>
+			  </ul>
+			</div>
+		</div>
+	</div>
+
+  </body>
+</html>
