@@ -24,7 +24,7 @@ import (
 	"appengine/datastore"
 	"http"
 	"log"
-//	"reflect"
+	"reflect"
 	"time"
 )
 
@@ -33,14 +33,52 @@ import (
 )
 
 
+// TODO: Factor out serving errors
+// TODO: Factor our PUTs and GETs
+
+
 // TODO Write this
 func SetLastLoggedIn(context appengine.Context) {
 	return
 }
 
+/* Get a list of tags, from a list of strings.
+ *
+ * For each tag, check if the tag is already in the datastore.
+ * If it is, return the existing tag, if not create a new one.
+ * A list of keys and corresponding model.Tag objects is returned.
+ *
+ * It is the responsibility of the calling object to ensure that the strings
+ * passed to this function have been trimmed.
+ */
+func GetTags(tagnames []string, context appengine.Context, w http.ResponseWriter) ([]*datastore.Key, []model.Tag) {
+	name := new(string)
+	key := new(datastore.Key)
+	tag := new(model.Tag)
+	tags :=  make([]model.Tag, len(tagnames)) 
+	keys :=  make([]*datastore.Key, len(tagnames)) 
+	for i := 0; i < len(tagnames); i++ {		
+		name = &tagnames[i]
+		log.Println(reflect.TypeOf(name))
+		key = datastore.NewKey("Tag", *name, 0, nil)
+		keys[i] = key
+		tag = &model.Tag{Tag:*name}
+		if err := datastore.Get(context, key, tag); err != nil {
+			log.Println("No such tag: " + *name)
+			_, err2 := datastore.Put(context, key, tag)
+			if err2 != nil {
+				log.Println("Could not store Tag: " + *name + " " + err2.String())
+			}
+		}
+		tags[i] = *tag
+    }
+	return keys, tags
+}
+
+
 /* Retreive a user object in the model, from an appengine user object.
  */
-func GetUserObject(context appengine.Context, w http.ResponseWriter) (*model.HowlUser) {
+func GetUserObject(context appengine.Context, w http.ResponseWriter) (*model.HowlUser, *datastore.Key) {
 	hu := new(model.HowlUser)
 	key := datastore.NewKey("HowlUser", user.Current(context).String(), 0, nil)
 
@@ -48,10 +86,11 @@ func GetUserObject(context appengine.Context, w http.ResponseWriter) (*model.How
 
 	if err := datastore.Get(context, key, hu); err != nil {
 		log.Println("Error fetching HowlUser object: " + err.String())
-        return nil
+        return nil, key
     }
-	return hu
+	return hu, key
 }
+
 
 /* Store new user object.
  */
@@ -71,19 +110,35 @@ func PutUserObject (hu model.HowlUser, context appengine.Context, w http.Respons
 	return
 }
 
-func PutStreamConfigurationObject (sc model.StreamConfiguration, context appengine.Context, w http.ResponseWriter) {
-	key := datastore.NewIncompleteKey("StreamConfiguration")
-    _, err := datastore.Put(context, key, &sc)
+
+/* Store a datastream, and its configurtation in the persistent store.
+ *
+ * @param sc configuration object for the datastream
+ * @param ds new datastream objects
+ * @param tagnames list of strings representing tags for the datastream
+ * @param context 
+ * @param w writer used to write error messages
+ */
+func PutDataStreamObject(sc model.StreamConfiguration, ds model.DataStream, 
+	                     tagnames []string, context appengine.Context, 
+	                     w http.ResponseWriter) {
+	// Deal with keys
+	userObj, userKey := GetUserObject(context, w)
+	dsKey := datastore.NewKey("DataStream", userObj.Id + ds.Name, 0, nil)
+	scKey := datastore.NewKey("StreamConfiguration", "Config" + userObj.Id + ds.Name, 0, nil)
+	// Deal with tags.
+	tagKeys, _ := GetTags(tagnames, context, w)
+	ds.Tags = tagKeys
+	// Store stream configuration
+    _, err := datastore.Put(context, scKey, &sc)
 	if err != nil {
         http.Error(w, "Error storing stream configuration: " + err.String(), http.StatusInternalServerError)
-        return
+		return
     }
-	return
-}
-
-func PutDataStreamObject(ds model.DataStream, context appengine.Context, w http.ResponseWriter) {
-	key := datastore.NewKey("DataStream", user.Current(context).String() + ds.Name, 0, nil)
-    _, err := datastore.Put(context, key, &ds)
+	// Store data stream
+	ds.Owner = userKey
+	ds.Configuration = scKey
+    _, err = datastore.Put(context, dsKey, &ds)
 	if err != nil {
         http.Error(w, "Error storing data stream: " + err.String(), http.StatusInternalServerError)
         return

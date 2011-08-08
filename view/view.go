@@ -23,6 +23,7 @@ import (
 	"http"
 	"log"
     "strconv" 
+	"strings"
 	"template"
 )
 
@@ -108,7 +109,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
 	}
 	// Get user object
-	user_ := controller.GetUserObject(context, w)
+	user_, _ := controller.GetUserObject(context, w)
 	if user_ == nil {
 		log.Println("No user found with id " + uname.String() + " redirecting from / to /newuser")
 		http.Redirect(w, r, "/newuser", http.StatusFound)
@@ -116,7 +117,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	// Get logout URL
 	logout, _ := user.LogoutURL(context, "/")
 	// Get streams owned by this user
-	streams := controller.GetStreamsOwnedByUser(controller.GetUserObject(context, w), context, w)
+	streams := controller.GetStreamsOwnedByUser(user_, context, w)
 	// Execute template FIXME: replace nil values with real data	
 	dp := DashboardPage{User:uname.String(), Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil}
 	renderTemplateFromFile(dashTemplate, dp, w)
@@ -175,22 +176,21 @@ func CreateDataStreamHandler(w http.ResponseWriter, r *http.Request) {
 		login_url, _ := user.LoginURL(context, r.URL.String())
 		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
 	}
-	// Get user object
-	user_ := controller.GetUserObject(context, w)
-	if user_ == nil {
-		http.Redirect(w, r, "/newuser", http.StatusFound)
-	}
 	// Reformat form data
 	pkey, errkey := strconv.Atoi64(r.FormValue("pachubefeedid"))
 	if errkey != nil {
 		pkey = 0
 	}
+	// Get a list of tags
+	tagnames := strings.Split(r.FormValue("tags"), ",", -1)
+	for i := 0; i < len(tagnames); i++ {		
+		tagnames[i] = strings.Trim(tagnames[i], " ")
+	}
 	// Create new objects in model
 	sc := model.StreamConfiguration{PachubeKey:r.FormValue("pachubekey"), PachubeFeedId:pkey, TwitterName:r.FormValue("twitteraccount"), TwitterToken:r.FormValue("twittertoken"), TwitterTokenSecret:r.FormValue("twittertokensecret")}
-	ds := model.DataStream{Owner:*user_, Name:r.FormValue("name"),	Desription:r.FormValue("description"), Configuration:sc}
+	ds := model.DataStream{Name:r.FormValue("name"), Desription:r.FormValue("description")}
 	// Make persistent
-	controller.PutStreamConfigurationObject(sc, context, w)
-	controller.PutDataStreamObject(ds, context, w)
+	controller.PutDataStreamObject(sc, ds, tagnames, context, w)
 	// Return to home page
 	http.Redirect(w, r, "/", http.StatusFound)
 	return
