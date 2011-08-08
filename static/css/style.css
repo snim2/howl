@@ -138,7 +138,7 @@ div.container {
 	color: #FFFFFF;
 }
 
-div.feedinfo {
+div.redblock {
 	background:#D00000;
 	color:#EBE0CE;
 	width:100%;
@@ -151,32 +151,32 @@ div.feedinfo {
 }
 
 
-.feedinfo form {
+.redblock form {
 	background: #EBE0CE; 
 	color: #D00000;
 }
 
-.feedinfo fieldset {
+.redblock fieldset {
 	border: 1px solid #3E4A49;
 }
 
-.feedinfo legend {
+.redblock legend {
 	background: #D00000;
 	color: #EBE0CE;
 	border: 1px solid #D00000;
 }
 
-.feedinfo .button{
+.redblock .button{
 	background: #D00000;
 	color: #EBE0CE;
 	border: 2px solid #EBE0CE;
 }
 
-.feedinfo textarea:focus, input:focus {
+.redblock textarea:focus, input:focus {
 	border: 2px solid #D00000;
 }
 
-div.feedchart {
+div.greenblock {
 	background:#BAD466;
 	color:#1A7839;
 	width:100%;
@@ -187,33 +187,33 @@ div.feedchart {
  	padding:5px 20px 20px 20px; /* top right bottom left */
 }
 
-.feedchart form {
+.greenblock form {
 	background: #1A7839; 
 	color: #BAD466;
 }
 
-.feedchart fieldset {
+.greenblock fieldset {
 	border: 1px solid #3E4A49;
 }
 
-.feedchart legend {
+.greenblock legend {
 	background: #BAD466;
 	color: #1A7839;
 	border: 1px solid #BAD466;
 }
 
-.feedchart .button{
+.greenblock .button{
 	background: #BAD466;
 	color: #1A7839;
 	border: 2px solid #1A7839;
 }
 
-.feedchart textarea:focus, input:focus {
+.greenblock textarea:focus, input:focus {
 	border: 2px solid #BAD466;
 }
 
 
-div.feeddata {
+div.blueblock {
 	background:#001F3C;
 	color: #85a9a7;
 	width:100%;
@@ -224,43 +224,43 @@ div.feeddata {
  	padding:5px 20px 20px 20px; /* top right bottom left */
 }
 
-.feeddata form {
+.blueblock form {
 	color: #001F3C;
 	background: #85a9a7;
 }
 
-.feeddata select {
+.blueblock select {
 	color: #001F3C;
 	background: #85a9a7;
 }
 
-.feeddata option {
+.blueblock option {
 	color: #001F3C;
 	background: #85a9a7;
 }
 
-.feeddata fieldset {
+.blueblock fieldset {
 	border: 1px solid #3E4A49;
 }
 
-.feeddata legend {
+.blueblock legend {
 	color: #85a9a7;
 	background-color: #001F3C;
 	border: 1px solid #001F3C;
 }
 
-.feeddata .submit input {
+.blueblock .submit input {
 	background: #001F3C;
 	border: 2px solid #85a9a7;
 	color: #85a9a7;
 }
 
-.feeddata textarea:focus, input:focus {
+.blueblock textarea:focus, input:focus {
 	border: 2px solid #001F3C;
 }
 
 
-div.feedstats {
+div.greyblock {
 	background:#EBE0CE;
 	color:#26465D;
 	width:100%;
@@ -271,28 +271,28 @@ div.feedstats {
  	padding:5px 20px 20px 20px; /* top right bottom left */
 }
 
-.feedstats form {
+.greyblock form {
 	background: #26465D; 
 	color: #EBE0CE;
 }
 
-.feedstats fieldset {
+.greyblock fieldset {
 	border: 1px solid #3E4A49;
 }
 
-.feedstats legend {
+.greyblock legend {
 	background: #EBE0CE;
 	color: #26465D;
 	border: 1px solid #EBE0CE;
 }
 
-.feedstats .button{
+.greyblock .button{
 	background: #EBE0CE;
 	color: #26465D;
 	border: 2px solid #26465D;
 }
 
-.feedstats textarea:focus, input:focus {
+.greyblock textarea:focus, input:focus {
 	border: 2px solid #EBE0CE;
 }
 
