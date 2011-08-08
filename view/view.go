@@ -205,7 +205,7 @@ func CreateDataStreamHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Create new objects in model
 	sc := model.StreamConfiguration{PachubeKey:r.FormValue("pachubekey"), PachubeFeedId:pkey, TwitterName:r.FormValue("twitteraccount"), TwitterToken:r.FormValue("twittertoken"), TwitterTokenSecret:r.FormValue("twittertokensecret")}
-	ds := model.DataStream{Name:r.FormValue("name"), Description:r.FormValue("description")}
+	ds := model.DataStream{Name:r.FormValue("name"), Description:r.FormValue("description"), Url:r.FormValue("url")}
 	// Make persistent
 	controller.PutDataStreamObject(sc, ds, tagnames, context, w)
 	// Return to home page

@@ -23,32 +23,32 @@ import (
 )
 
 type HowlUser struct {
-	Name string
-	Id string
-    Email string
-	About string
-    Url string
-    LastLogin datastore.Time
-	DisplayStartupDocs bool
+	Name				 string
+	Id					 string
+						 Email string
+	About				 string
+						 Url string
+						 LastLogin datastore.Time
+	DisplayStartupDocs	 bool
 }
 
 // Authentication for external services.
 
 type StreamConfiguration struct {
-	PachubeKey string
-	PachubeFeedId int64
-	TwitterName string
-	TwitterToken string
-	TwitterTokenSecret string
-	YfdToken string
+	PachubeKey			 string
+	PachubeFeedId		 int64
+	TwitterName			 string
+	TwitterToken		 string
+	TwitterTokenSecret	 string
+	YfdToken			 string
 }
 
 // Streams and data
 // Documented in an ER diagram in the docs/ directory.
 
 type Comment struct {
-	Text string
-	Author string // HowlUser.Id
+	Text		 string
+	Author		 string // HowlUser.Id
 }
 
 type Tag struct {
@@ -56,32 +56,33 @@ type Tag struct {
 }
 
 type DataStream struct { 
-	Owner *datastore.Key
-	Name string
-	Description string
-	AccessList []*datastore.Key    // Users with read/write access.
-	Providers []*datastore.Key
-	Configuration *datastore.Key
-	Tags []*datastore.Key
-	Comments []*datastore.Key
+	Owner				 *datastore.Key
+	Name				 string
+	Description			 string
+	Url                  string
+	AccessList			 []*datastore.Key    // Users with read/write access.
+	Providers			 []*datastore.Key
+	Configuration		 *datastore.Key
+	Tags				 []*datastore.Key
+	Comments			 []*datastore.Key
 }
 
 type DataProvider struct {
-	Name string 
-	Description string
-	Url string
-	Owner *datastore.Key
-	AccessList []*datastore.Key    // Users with read/write access.
-	Latitude float32
-	Longditude float32
-	Elevation float32
-	Dimension string // Unit of dimension
-    Data []datastore.Key
+	Name		 string 
+	Description	 string
+	Url			 string
+	Owner		 *datastore.Key
+	AccessList	 []*datastore.Key    // Users with read/write access.
+	Latitude	 float32
+	Longditude	 float32
+	Elevation	 float32
+	Dimension	 string // Unit of dimension
+	Data         []datastore.Key
 }
 
 type Datum struct {
-	Timestamp datastore.Time
-	Value float64
-	Url string
+	Timestamp	 datastore.Time
+	Value		 float64
+	Url			 string
 }
 

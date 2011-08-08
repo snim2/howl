@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 html {
 	background:#DDDDDD;
 	font-family: 'Istok Web', sans-serif, sans;
-	font-size: 1.0em;
+	font-size: 0.9em;
 }
 
 body {
@@ -138,6 +138,10 @@ div.container {
 	color: #FFFFFF;
 }
 
+/*
+ * RED BLOCK.
+ */
+
 div.redblock {
 	background:#D00000;
 	color:#EBE0CE;
@@ -176,6 +180,10 @@ div.redblock {
 	border: 2px solid #D00000;
 }
 
+/*
+ * GREEN BLOCK.
+ */
+
 div.greenblock {
 	background:#BAD466;
 	color:#1A7839;
@@ -212,6 +220,9 @@ div.greenblock {
 	border: 2px solid #BAD466;
 }
 
+/*
+ * BLUE BLOCK.
+ */
 
 div.blueblock {
 	background:#001F3C;
@@ -259,6 +270,9 @@ div.blueblock {
 	border: 2px solid #001F3C;
 }
 
+/*
+ * GREY BLOCK.
+ */
 
 div.greyblock {
 	background:#EBE0CE;
@@ -296,6 +310,52 @@ div.greyblock {
 	border: 2px solid #EBE0CE;
 }
 
+/*
+ * BLACK BLOCK.
+ */
+
+div.blackblock {
+	background:#000000;
+	color:#DDDDDD;
+	width:100%;
+	text-align:left;
+	border-top:8px solid #FFFFFF;
+	border-left:8px solid #FFFFFF;
+	border-right:8px solid #FFFFFF;
+	border-bottom:8px solid #FFFFFF;
+ 	padding:5px 20px 20px 20px; /* top right bottom left */
+}
+
+
+.blackblock form {
+	background: #DDDDDD; 
+	color: #000000;
+}
+
+.blackblock fieldset {
+	border: 1px solid #3E4A49;
+}
+
+.blackblock legend {
+	background: #000000;
+	color: #DDDDDD;
+	border: 1px solid #000000;
+}
+
+.blackblock .button{
+	background: #000000;
+	color: #DDDDDD;
+	border: 2px solid #DDDDDD;
+}
+
+.blackblock textarea:focus, input:focus {
+	border: 2px solid #000000;
+}
+
+
+/* 
+ * FOOTER LAYOUT 
+ */
 
 div.footer {
 	background:#222222;
@@ -310,10 +370,6 @@ div.footer {
 	/* CSS3 standard */
 	opacity:0.6;
 }
-
-
-
-/* Footer layout */
 
 div.centering {
 	display:block;
@@ -366,7 +422,9 @@ div.centering {
 }
 
 
-/* General tags */
+/* 
+ * GENERAL TAGS 
+ */
 
 a:link { /* unvisited link */
 	color:#00DDDD; 
@@ -380,6 +438,11 @@ a:hover { /* mouse over link */
 a:active { /* selected link */
 	color:#0000DD;
 }  
+
+hr {
+	width:90%;
+	height:0px;
+}
 
 h4 {
 	font-weight: bold;

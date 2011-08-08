@@ -22,37 +22,44 @@
 		<h2>Your data streams</h2>
 		{.section OwnedStreams}
 		{.repeated section @}
-		<h3>{Name}</h3>
-		<p>{Description}</p>
+		<h3>{Name|html}</h3>
+		<p>{Description|html}</p>
+		<p><a href="{Url}">{Url}</a>
+		  {.section Tags}
+		  <p>Tags: 
+			{.repeated section @}
+			{@|html}&nbsp;
+			{.end}
+		  <p>
+		  {.end}
+		  <hr>
 		{.end}
+		<p>Create a <a href="#blueblock">new stream!</a></p>
 		{.or}
-		<p>You currently have no data streams defined, why not <a href="/newstream">create one!</a></p>
+		<p>You currently have no data streams defined, why not <a href="#blueblock">create one!</a></p>
 		{.end}
 	  </div>
 
 	  <div class="greenblock">
 		<h2>Data streams shared with you</h2> 
-
 		{.section SharedStreams}
 		{.repeated section SharedStreams}
 		<h3><a href="{Url}">{Name|html}</a></h3>
-		<p>
-		  {Description|html}
-		</p>
+		<p>{Description|html}</p>
 		{.end}
 		{.or}
-		<p>No users have shared data streams with you, why not <a href="/newstream">create one</a> of your own!</p>
+		<p>No users have shared data streams with you, why not <a href="#blueblock">create one</a> of your own!</p>
 		{.end}
-
 	  </div>
 
 	  <div class="blueblock">
-	  	<h2>Create a new stream</h2>
+	  	<h2><a name="blueblock">Create a new stream</a></h2>
 	  	<form action="/newstream" method="post" class="form">
 	  	  <div>
 			<fieldset>
 			  <legend>Create new stream</legend>
 	  		  <p><label for="name">Name</label><input type="text" name="name"/></p>
+	  		  <p><label for="url">Url</label><input type="text" name="url"/></p>
 	  		  <p><label for="description">Description</label><textarea name="description" rows="5" cols="44"></textarea></p>
 			  <p><label for="tags">Tags (comma separated)</label><input type="text" name="tags"/></p>
 
@@ -76,7 +83,7 @@
 				  {.end}
 				</select>
 				{.or}
-				You have no data providers defined, why not <a href="/newuser">create one!</a>
+				You have no data providers defined, why not <a href="#greyblock">create one!</a>
 			  </p>
 			  {.end}
 	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Create"/></p>
@@ -85,9 +92,30 @@
 	  	</form>
 	  </div>
 
-	  <!-- <div class="greyblock"> -->
-	  <!-- 	<h2>FOOBAR</h2> -->
-	  <!-- </div> -->
+	  <div class="greyblock">
+		<h2><a name="greyblock">Your data providers</a></h2>
+		{.section OwnedProviders}
+		{.repeated section OwnedProviders}
+		<h3><a href="{Url}">{Name|html}</a></h3>
+		<p>{Description|html}</p>
+		{.end}
+		{.or}
+		<p>You currently have no data providers defined, why not <a href="#?block">create one!</a></p>
+		{.end}
+	  </div>
+
+	  <div class="blackblock">
+		<h2><a name="blackblock">Data providers shared with you</a></h2>
+		{.section SharedProviders}
+		{.repeated section SharedProviders}
+		<h3><a href="{Url}">{Name|html}</a></h3>
+		<p>{Description|html}</p>
+		{.end}
+		{.or}
+		<p>You currently have no data providers defined, why not <a href="#?block">create one!</a></p>
+		{.end}
+	  </div>
+
 
 	</div> <!-- END CONTAINER -->
 
