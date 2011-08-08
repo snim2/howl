@@ -108,7 +108,7 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
  * FIXME: Shared steams
  * FIXME: Owned / shared providers
  */
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
+func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	context, uname := verifyLoggedIn(w, r)
 	if uname == nil { 
 		login_url, _ := user.LoginURL(context, r.URL.String())
