@@ -102,6 +102,18 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
 
 /* Handle the index page. 
  *
+ * This is used when the user first logs in, to set their 
+ * LastLoggedIn field, then pass control to the DashboardHandler.
+ */
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	context, _ := verifyLoggedIn(w, r)
+	controller.SetLastLoggedIn(context, w)
+	DashboardHandler(w, r)
+}
+
+
+/* Handle the dashboard page. 
+ *
  * Should go to a page detailing the users details, their data streams
  * and so on.
  *

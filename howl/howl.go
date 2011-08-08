@@ -32,6 +32,6 @@ func init() {
     http.HandleFunc("/newuser", view.NewUserHandler)
     http.HandleFunc("/createnewuser", view.CreateNewUserHandler)
     http.HandleFunc("/dashboard", view.DashboardHandler)
-    http.HandleFunc("/", view.DashboardHandler)
+    http.HandleFunc("/", view.IndexHandler)
 }
 

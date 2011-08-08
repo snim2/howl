@@ -39,7 +39,10 @@ import (
 
 
 // TODO Write this
-func SetLastLoggedIn(context appengine.Context) {
+func SetLastLoggedIn(context appengine.Context, w http.ResponseWriter) {
+	userobj, _ := GetUserObject(context, w)
+	userobj.LastLogin = datastore.SecondsToTime(time.Seconds())
+	PutUserObject(*userobj, context, w)
 	return
 }
 
