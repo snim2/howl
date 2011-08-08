@@ -21,11 +21,9 @@
 	  <div class="feedinfo">
 		<h2>Your data streams</h2>
 		{.section OwnedStreams}
-		{.repeated section OwnedStreams}
-		<h3><a href="{Url}">{Name|html}</a></h3>
-		<p>
-		  {Description|html}
-		</p>
+		{.repeated section @}
+		<h3>{Name}</h3>
+		<p>{Description}</p>
 		{.end}
 		{.or}
 		<p>You currently have no data streams defined, why not <a href="/newstream">create one!</a></p>

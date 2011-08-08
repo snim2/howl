@@ -58,7 +58,7 @@ type Tag struct {
 type DataStream struct { 
 	Owner *datastore.Key
 	Name string
-	Desription string
+	Description string
 	AccessList []*datastore.Key    // Users with read/write access.
 	Providers []*datastore.Key
 	Configuration *datastore.Key
@@ -70,6 +70,8 @@ type DataProvider struct {
 	Name string 
 	Description string
 	Url string
+	Owner *datastore.Key
+	AccessList []*datastore.Key    // Users with read/write access.
 	Latitude float32
 	Longditude float32
 	Elevation float32

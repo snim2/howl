@@ -35,6 +35,7 @@ import (
 
 // TODO: Factor out serving errors
 // TODO: Factor our PUTs and GETs
+// TODO: Turn PUTs / GETs into Memcache calls
 
 
 // TODO Write this
@@ -147,12 +148,11 @@ func PutDataStreamObject(sc model.StreamConfiguration, ds model.DataStream,
 }
 
 
-func GetStreamsOwnedByUser (user *model.HowlUser, context appengine.Context, w http.ResponseWriter) ([]model.DataStream) {
-	if user == nil {
-		return nil
-	}
+func GetStreamsOwnedByUser (context appengine.Context, w http.ResponseWriter) ([]model.DataStream) {
+	user, userKey := GetUserObject(context, w)
+	log.Println("Looking for datastreams owned by: " + user.Id)
 	streams := make([]model.DataStream, 0, 100) // FIXME: Magic number
-	q := datastore.NewQuery("DataStream").Filter("Owner=", user.Id).Limit(10) 
+	q := datastore.NewQuery("DataStream").Filter("Owner=", userKey).Limit(10) 
 	if _, err := q.GetAll(context, &streams); err != nil {
 		log.Println("Error fetching DataStream objects for user " + user.Id + ": " + err.String())
         http.Error(w, err.String(), http.StatusInternalServerError)

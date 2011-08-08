@@ -20,9 +20,11 @@ package view
 import (
 	"appengine"
     "appengine/user"
+	"fmt"
 	"http"
 	"log"
-    "strconv" 
+//	"reflect"
+	"strconv"
 	"strings"
 	"template"
 )
@@ -34,29 +36,30 @@ import (
 
 
 var ( // HTML templates
-	signInTemplate = template.MustParseFile("sign.html", nil)
-	streamTemplate = template.MustParseFile("stream.html", nil)
-	dashTemplate = template.MustParseFile("dashboard.html", nil)
-	newUserTemplate = template.MustParseFile("newuser.html", nil)
+	signInTemplate		= template.MustParseFile("sign.html", nil)
+	streamTemplate		= template.MustParseFile("stream.html", nil)
+	dashTemplate		= template.MustParseFile("dashboard.html", nil)
+	newUserTemplate		= template.MustParseFile("newuser.html", nil)
 )
 
 
 /* Struct to store data for the dashTemplate template.
  */
 type DashboardPage struct {
-	User string
-	Signout string
-	OwnedStreams []model.DataStream
-	SharedStreams []model.DataStream
-	OwnedProviders []model.DataProvider
-}
+	User            string
+	Signout         string
+	OwnedStreams    []model.DataStream
+	SharedStreams   []model.DataStream
+	OwnedProviders  []model.DataProvider
+	SharedProviders []model.DataProvider
 
+}
 
 /* Struct to store data for the newUserTemplate template.
  */
 type NewUserPage struct {
-	User string
-	Signout string
+	User		 string
+	Signout		 string
 }
 
 
@@ -101,25 +104,27 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
  *
  * Should go to a page detailing the users details, their data streams
  * and so on.
+ *
+ * FIXME: Shared steams
+ * FIXME: Owned / shared providers
  */
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	context, uname := verifyLoggedIn(w, r)
-	if uname == nil { // BUG
+	if uname == nil { 
 		login_url, _ := user.LoginURL(context, r.URL.String())
 		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
-	}
-	// Get user object
-	user_, _ := controller.GetUserObject(context, w)
-	if user_ == nil {
-		log.Println("No user found with id " + uname.String() + " redirecting from / to /newuser")
-		http.Redirect(w, r, "/newuser", http.StatusFound)
 	}
 	// Get logout URL
 	logout, _ := user.LogoutURL(context, "/")
 	// Get streams owned by this user
-	streams := controller.GetStreamsOwnedByUser(user_, context, w)
-	// Execute template FIXME: replace nil values with real data	
-	dp := DashboardPage{User:uname.String(), Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil}
+	streams := controller.GetStreamsOwnedByUser(context, w)
+	log.Println(fmt.Sprintf("Found %v data streams for current user.", len(streams)))
+//	log.Println(reflect.TypeOf(streams).String())
+	// TODO: Get streams shared with user
+	// TODO: Get providers owned by user
+	// TODO: Get providers shared with user
+	// Render.
+	dp := DashboardPage{User:uname.String(), Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
 	renderTemplateFromFile(dashTemplate, dp, w)
 	return
 }
@@ -129,7 +134,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
  */
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	context, uname := verifyLoggedIn(w, r)
-	if uname == nil { // BUG
+	if uname == nil {
 		login_url, _ := user.LoginURL(context, r.URL.String())
 		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
 	}
@@ -188,7 +193,7 @@ func CreateDataStreamHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Create new objects in model
 	sc := model.StreamConfiguration{PachubeKey:r.FormValue("pachubekey"), PachubeFeedId:pkey, TwitterName:r.FormValue("twitteraccount"), TwitterToken:r.FormValue("twittertoken"), TwitterTokenSecret:r.FormValue("twittertokensecret")}
-	ds := model.DataStream{Name:r.FormValue("name"), Desription:r.FormValue("description")}
+	ds := model.DataStream{Name:r.FormValue("name"), Description:r.FormValue("description")}
 	// Make persistent
 	controller.PutDataStreamObject(sc, ds, tagnames, context, w)
 	// Return to home page
