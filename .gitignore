@@ -2,3 +2,4 @@
 *.autosave
 
 docs/data_model.png
+docs/*.html

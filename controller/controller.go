@@ -1,20 +1,20 @@
 /* Level of indirection between model and view packages.
-
-Copyright (C) Sarah Mount, 2011.
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * 
+ * Copyright (C) Sarah Mount, 2011.
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package controller
 
@@ -24,6 +24,7 @@ import (
 	"appengine/datastore"
 	"http"
 	"log"
+	"os"
 	"reflect"
 	"time"
 )
@@ -34,17 +35,38 @@ import (
 
 
 // TODO: Factor out serving errors
-// TODO: Factor our PUTs and GETs
+// TODO: Factor our PUTs and GETs (remember singleton get/put)
 // TODO: Turn PUTs / GETs into Memcache calls
 
 
-// TODO Write this
+/* Place an object in the datastore.
+ * TODO: Use memcache.
+ *
+ * @param context for this particular appengine session
+ * @param key datastore key for the object to be stored
+ * @param error message to be printed to the log / user in case of error
+ * @param object the object to be made persistent
+ * @return the key returned by the persistent store (if there is one, nil otherwise) and an error report (if there is one, nil otherwise)
+ */
+func put(context appengine.Context, key datastore.Key, error string, object interface{}) (*datastore.Key, os.Error) {
+    key_, err := datastore.Put(context, &key, &object)
+	if err != nil {
+		log.Println(error + " " + err.String())
+//        http.Error(w, "Error storing new user profile: " + err.String(), http.StatusInternalServerError)
+        return nil, err
+    }
+	return key_, nil
+}
+
+
+// FIXME: This seems to be storing the current time rather than a static timestamp
 func SetLastLoggedIn(context appengine.Context, w http.ResponseWriter) {
 	userobj, _ := GetUserObject(context, w)
 	userobj.LastLogin = datastore.SecondsToTime(time.Seconds())
 	PutUserObject(*userobj, context, w)
 	return
 }
+
 
 /* Get a list of tags, from a list of strings.
  *

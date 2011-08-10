@@ -1,20 +1,23 @@
 /* Web version of the howl view (as in MVC).
-
-Copyright (C) Sarah Mount, 2011.
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *
+ * FIXME: should just route request to different views according to requests.
+ * 
+ * Copyright (C) Sarah Mount, 2011.
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package view
 
 import (
@@ -88,12 +91,13 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
     context := appengine.NewContext(r)
     uname := user.Current(context)
     if uname == nil {
-		url, err := user.LoginURL(context, r.URL.String())
+		_, err := user.LoginURL(context, r.URL.String())
         if err != nil {
             http.Error(w, err.String(), http.StatusInternalServerError) // 500
 			return context, nil
         }
-		renderTemplateFromFile(signInTemplate, url, w)
+		CreateNewUserHandler(w, r)
+//		renderTemplateFromFile(signInTemplate, url, w)
 		return context, nil
     }
 	return context, uname
@@ -106,9 +110,15 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
  * LastLoggedIn field, then pass control to the DashboardHandler.
  */
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	context, _ := verifyLoggedIn(w, r)
+	context, uname := verifyLoggedIn(w, r)
+	if uname == nil { 
+		login_url, _ := user.LoginURL(context, r.URL.String())
+		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
+	}
+	// Kernel PANIC! FIXME
 	controller.SetLastLoggedIn(context, w)
 	DashboardHandler(w, r)
+	return
 }
 
 
