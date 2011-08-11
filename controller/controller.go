@@ -73,7 +73,6 @@ func put(context appengine.Context, key datastore.Key, error string, object inte
 }
 
 
-// FIXME: This seems to be storing the current time rather than a static timestamp
 func SetLastLoggedIn(context appengine.Context, w http.ResponseWriter) (os.Error) {
 	userobj, err := GetUserObject(context, w)
 	if userobj == nil || err != nil {

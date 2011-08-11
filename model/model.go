@@ -34,7 +34,7 @@ type HowlUser struct {
 	Email				 string // Taken from Google account.
 	About				 string
 	Url                  string
-	LastLogin            datastore.Time // FIXME See controller package.
+	LastLogin            datastore.Time
 }
 
 
