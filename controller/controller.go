@@ -105,15 +105,16 @@ func GetTags(tagnames []string, context appengine.Context, w http.ResponseWriter
 /* Retreive a user object in the model, from an appengine user object.
  */
 func GetCurrentHowlUser(context appengine.Context, w http.ResponseWriter) (*model.HowlUser, *datastore.Key) {
-	hu := new(model.HowlUser)
-	// FIXME: use filter
-	key := datastore.NewKey("HowlUser", user.Current(context).String(), 0, nil)
+	hu := make([]model.HowlUser, 0, 1)
+	email := user.Current(context).Email
+	query := datastore.NewQuery("HowlUser").Filter("Email =", email).Limit(1)
 	log.Println("Looking for user with Id " + user.Current(context).String())
-	if err := datastore.Get(context, key, hu); err != nil {
+	keys, err := query.GetAll(context, &hu); 
+	if err != nil {
 		log.Println("Error fetching HowlUser object: " + err.String())
-        return nil, key
+        return nil, keys[0]
     }
-	return hu, key
+	return &hu[0], keys[0]
 }
 
 
