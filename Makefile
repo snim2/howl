@@ -4,6 +4,8 @@
 # TODO: Add support for unit testing, etc.
 #
 
+APP=fieldsensing
+
 SHELL=/bin/sh
 RM=/bin/rm
 DIA=/usr/bin/dia
@@ -15,7 +17,15 @@ MODEL=data_model
 GODOC=/usr/bin/godoc
 GODOC_FLAGS=-timestamps=true -index -html
 
-all:	docs $(MODEL).png 
+DEVSERVER=dev_appserver.py 
+APPCFG=appcfg.py
+APPENGINE_PATH=~/inst/go_appengine
+DEVSERVER_FLAGS=
+
+all:	docs $(MODEL).png dev
+
+dev:
+	$(APPENGINE_PATH)/$(DEVSERVER) $(DEVSERVER_FLAGS) .
 
 docs:	$(DOCS)/howl.html $(DOCS)/model.html $(DOCS)/view.html $(DOCS)/controller.html
 
@@ -24,6 +34,9 @@ $(MODEL).png:
 
 $(DOCS)/%.html: % 
 	$(GODOC) $(GODOC_FLAGS) ./$</ > $@
+
+upload:
+	$(APPENGINE_PATH)/$(APPCFG) update .
 
 clean:
 	-@ $(RM) $(DOCS)/$(MODEL).png
