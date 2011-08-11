@@ -23,6 +23,7 @@ import (
     "appengine/user"
 	"appengine/datastore"
 	"http"
+	"io"
 	"log"
 	"os"
 	"reflect"
@@ -66,7 +67,6 @@ func put(context appengine.Context, key datastore.Key, error string, object inte
     key_, err := datastore.Put(context, &key, &object)
 	if err != nil {
 		log.Println(error + " " + err.String())
-//        http.Error(w, "Error storing new user profile: " + err.String(), http.StatusInternalServerError)
         return nil, err
     }
 	return key_, nil
