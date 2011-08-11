@@ -10,6 +10,8 @@ function topbar_redirect(opt) {
 }
 
 
+/* Chart drawing with dygraphs. 
+
 google.load('visualization', '1', {'packages':['annotatedtimeline']});
 google.setOnLoadCallback(drawChart);
 
@@ -35,3 +37,4 @@ function drawChart() {
         g.draw(data, {displayAnnotations: true, labelsKMB: true, legend: "always"});
 }
    
+*/

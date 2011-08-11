@@ -26,13 +26,21 @@ import (
 	"fmt"
 	"http"
 	"io"
+	"json"
 	"log"
 	"os"
-//	"reflect" // Used only for debugging.
 	"strconv"
 	"strings"
 	"template"
 )
+
+
+/* // Used only for debugging.
+import (
+	"reflect" 
+)
+*/
+
 
 import (
 	"model"
@@ -136,6 +144,9 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
 }
 
 
+// *** Handlers below ***
+
+
 /* Handle the dashboard page. 
  *
  * Should go to a page detailing the users details, their data streams
@@ -162,6 +173,36 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// Render.
 	dp := DashboardPage{User:userobj.Uid, Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
 	renderTemplateFromFile(dashTemplate, dp, w)
+	return
+}
+
+
+/* Check the uniqueness of a Uid.
+ *
+ */
+func CheckUidHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("CheckUidHandler got request with method: " + r.Method)
+	if r.Method == "POST" {
+		context := appengine.NewContext(r)
+		isUnique := controller.IsUidUnique(context, r.FormValue("uid"))
+		encoder := json.NewEncoder(w)
+		type UidResponse struct {
+			Uid       string
+			Available string
+		}
+		response := new(UidResponse)
+		response.Uid = r.FormValue("uid")
+		if isUnique {
+			response.Available = "available"
+		} else {
+			response.Available = "not available"
+		}
+		log_, _ := json.Marshal(&response)
+		log.Println("Sending to JQuery: " + string(log_))
+		if err := encoder.Encode(&response); err != nil {
+			log.Println("Cannot send JSON to AJAX code: " + err.String())
+		}
+	}
 	return
 }
 
@@ -208,10 +249,8 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 		// Create new objects in model
 		sc := model.StreamConfiguration{PachubeKey:r.FormValue("pachubekey"), PachubeFeedId:pkey, TwitterName:r.FormValue("twitteraccount"), TwitterToken:r.FormValue("twittertoken"), TwitterTokenSecret:r.FormValue("twittertokensecret")}
 		ds := model.DataStream{Name:r.FormValue("name"), Description:r.FormValue("description"), Url:r.FormValue("url")}
-		// Make persistent
 		controller.PutDataStreamObject(sc, ds, tagnames, context, w)
-		// Return to home page
-		http.Redirect(w, r, "/", http.StatusFound) // FIXME Wrong status returned?
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
@@ -247,16 +286,14 @@ func DatumHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
-/* Page to configure a new user profile.
+/* Page to configure a user profile.
  */
 func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("ProfileHandler got request with method: " + r.Method)
 	if r.Method == "GET" {
 		context := appengine.NewContext(r)
 		g_user := user.Current(context)
-		// Get logout URL
 		logout, _ := user.LogoutURL(context, "/")
-		// Render page
 		nup := NewUserPage{User:g_user.String(), Signout:logout}
 		renderTemplateFromFile(newUserTemplate, nup, w)
 		return
@@ -265,10 +302,10 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		context := appengine.NewContext(r)
 		// Create model object
 		hu := model.HowlUser{Name:r.FormValue("name"), 
+		                     Uid:r.FormValue("uid"),
 	                         Url:r.FormValue("url"), 
 	                         About:r.FormValue("about"),}
 		log.Println("Created new user profile for " + r.FormValue("name")) 
-		// Make persistant 
 		controller.PutUserObject(hu, context, w)
 		req, _ := http.NewRequest("GET", "/", r.Body)
 		http.Redirect(w, req, "/", 302)

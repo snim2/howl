@@ -31,7 +31,7 @@ import (
  */
 type HowlUser struct {
 	Name				 string // "Real" name.
-	Uid			         string
+	Uid			         string // Unique username, checked by jquery, used as key.
 	Email				 string // Taken from Google account.
 	About				 string
 	Url                  string

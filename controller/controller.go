@@ -106,6 +106,7 @@ func GetTags(tagnames []string, context appengine.Context, w http.ResponseWriter
  */
 func GetCurrentHowlUser(context appengine.Context, w http.ResponseWriter) (*model.HowlUser, *datastore.Key) {
 	hu := new(model.HowlUser)
+	// FIXME: use filter
 	key := datastore.NewKey("HowlUser", user.Current(context).String(), 0, nil)
 	log.Println("Looking for user with Id " + user.Current(context).String())
 	if err := datastore.Get(context, key, hu); err != nil {
@@ -121,7 +122,6 @@ func GetCurrentHowlUser(context appengine.Context, w http.ResponseWriter) (*mode
 func PutUserObject (hu model.HowlUser, context appengine.Context, w http.ResponseWriter) {
 	// Set values known to the datastore
 	hu.LastLogin = datastore.SecondsToTime(time.Seconds())
-	hu.Uid = user.Current(context).String()
 	hu.Email = user.Current(context).Email
 	key := datastore.NewKey("HowlUser", hu.Uid, 0, nil)
 	// Make persistent
@@ -134,6 +134,19 @@ func PutUserObject (hu model.HowlUser, context appengine.Context, w http.Respons
 	return
 }
 
+
+/* Check the uniqueness of a username in the datastore.
+ *
+ * Returns true if there is no such uid in the datastore, thus the 
+ */
+func IsUidUnique(context appengine.Context, uid string) (bool) {
+	hu := new(model.HowlUser)
+	q := datastore.NewQuery("HowlUser").Filter("Uid=", uid).Limit(1) 
+	if _, err := q.GetAll(context, &hu); err != nil {
+        return true
+    }
+	return false
+} 
 
 /* Store a datastream, and its configurtation in the persistent store.
  *

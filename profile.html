@@ -5,7 +5,9 @@
 	<title>Howl: an Internet of Things experiment</title>
 	<link href='http://fonts.googleapis.com/css?family=Istok+Web' rel='stylesheet' type='text/css'>
 	<link href="../css/style.css" rel="stylesheet" type="text/css" />
-    <script type="text/javascript" src="/js/howl.js"></script>
+	<script type="text/javascript" src="/js/jquery-1.6.2.min.js" charset="utf-8"></script>
+	<script type="text/javascript" src="/js/profile.js"></script>
+	<script type="text/javascript" src="/js/howl.js"></script>
   </head>
   <body>
 
@@ -27,7 +29,8 @@
 	  	  <div>
 			<fieldset>
 			  <legend>Your profile</legend>
-	  		  <p><label for="name">Your name</label><input type="text" name="name"/></p>
+			  <p><label for="uid">Username</label><input type="text" id="uid" name="uid" value=""/></p>
+	  		  <p><label for="name">Full name</label><input type="text" name="name"/></p>
 	  		  <p><label for="url">Homepage</label><input type="text" name="url"/></p>
 	  		  <p><label for="about">About you</label><textarea name="about" rows="5" cols="44"></textarea></p>
 

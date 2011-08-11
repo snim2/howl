@@ -39,6 +39,8 @@ func init() {
 	// Especially for web browsers.
     http.HandleFunc("/",						view.DashboardHandler)
 	http.HandleFunc("/dashboard",				view.DashboardHandler)
+	// Check the uniqueness of a uid in the datastore.
+	http.HandleFunc("/checkuid",				view.CheckUidHandler)
 	// RESTful interface.
     http.HandleFunc("/user",					view.UserHandler)
     http.HandleFunc("/user/([^/]+)/profile",	view.ProfileHandler)
