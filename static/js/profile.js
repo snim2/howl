@@ -20,7 +20,21 @@ $j(document).ready(function() {
             'checkuid?uid=' + uid,
             function(data) {
                 obj = JSON.parse(data);
-                alert('Username ' + obj.Uid + ' is ' + obj.Available);
+				if (uid == "") {
+					$j('#uid_required').show();
+					$j('#uid_not_ok').hide();
+					$j('#uid_ok').hide();
+					return;
+				}
+				else if (obj.Available == "available") {
+					$j('#uid_required').hide();
+					$j('#uid_not_ok').hide();
+					$j('#uid_ok').show();
+				} else {
+					$j('#uid_required').hide();
+					$j('#uid_ok').hide();
+					$j('#uid_not_ok').show();					
+				}
             }
         );
     }

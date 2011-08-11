@@ -137,16 +137,20 @@ func PutUserObject (hu model.HowlUser, context appengine.Context, w http.Respons
 
 /* Check the uniqueness of a username in the datastore.
  *
- * Returns true if there is no such uid in the datastore, thus the 
+ * Returns true if there is no such uid in the datastore, thus the uid will be 
+ * unique in the store.
  */
 func IsUidUnique(context appengine.Context, uid string) (bool) {
 	hu := new(model.HowlUser)
-	q := datastore.NewQuery("HowlUser").Filter("Uid=", uid).Limit(1) 
-	if _, err := q.GetAll(context, &hu); err != nil {
-        return true
-    }
+	key := datastore.NewKey("HowlUser", uid, 0, nil) 
+	err := datastore.Get(context, key, hu)
+	if err != nil {
+		log.Println("Datastore error retreiving HowlUser with uid " + uid + ": " + err.String())
+		return true
+	} 
 	return false
 } 
+
 
 /* Store a datastream, and its configurtation in the persistent store.
  *

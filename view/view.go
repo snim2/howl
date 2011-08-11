@@ -35,11 +35,11 @@ import (
 )
 
 
-/* // Used only for debugging.
+// Used only for debugging.
 import (
 	"reflect" 
 )
-*/
+
 
 
 import (
@@ -192,9 +192,12 @@ func CheckUidHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		response := new(UidResponse)
 		response.Uid = r.FormValue("uid")
+		log.Println("Result from IsUidUnique is: " + strconv.Btoa(isUnique) + " : " + reflect.TypeOf(isUnique).String())
 		if isUnique {
+			log.Println("Username " + response.Uid + " is available")
 			response.Available = "available"
 		} else {
+			log.Println("Username " + response.Uid + " is not available")
 			response.Available = "not available"
 		}
 		log_, _ := json.Marshal(&response)

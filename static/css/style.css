@@ -62,13 +62,26 @@ label {
 	text-align: right;
 	margin-right: 0.5em;
 	display: table;
-	width: 100px;
-	margin-right: 10px;
 	vertical-align:middle;
 }
 
 label:after { content: ": " }
  
+.form span.positive {
+	color:#00DD00; 
+	display:block; 
+	margin-left:6.5em; 
+	margin-top:0.5em;
+}
+
+.form span.negative {
+	color:#DD0000; 
+	display:block; 
+	margin-left:6.5em; 
+	margin-top:0.5em;
+}
+
+
 #buttons {
 	text-align: right;
 	margin: -15px 0 -5px 0;

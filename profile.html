@@ -29,7 +29,10 @@
 	  	  <div>
 			<fieldset>
 			  <legend>Your profile</legend>
-			  <p><label for="uid">Username</label><input type="text" id="uid" name="uid" value=""/></p>
+			  <p><label for="uid">Username</label><input type="text" id="uid" name="uid" value=""/><br/>
+			  <span class="negative" style="display:block;" id="uid_required">Required</span>
+			  <span class="negative" style="display:none;" id="uid_not_ok">Username not available</span>
+			  <span class="positive" style="display:none;" id="uid_ok">Username available</span></p>
 	  		  <p><label for="name">Full name</label><input type="text" name="name"/></p>
 	  		  <p><label for="url">Homepage</label><input type="text" name="url"/></p>
 	  		  <p><label for="about">About you</label><textarea name="about" rows="5" cols="44"></textarea></p>
