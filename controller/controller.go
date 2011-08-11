@@ -34,9 +34,23 @@ import (
 )
 
 
-// TODO: Factor out serving errors
 // TODO: Factor our PUTs and GETs (remember singleton get/put)
 // TODO: Turn PUTs / GETs into Memcache calls
+
+
+func serve404(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	io.WriteString(w, "Not Found")
+}
+
+
+func serveError(c appengine.Context, w http.ResponseWriter, err os.Error) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	io.WriteString(w, "Internal Server Error")
+	c.Errorf("%v", err)
+}
 
 
 /* Place an object in the datastore.
