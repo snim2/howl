@@ -60,11 +60,14 @@ func put(context appengine.Context, key datastore.Key, error string, object inte
 
 
 // FIXME: This seems to be storing the current time rather than a static timestamp
-func SetLastLoggedIn(context appengine.Context, w http.ResponseWriter) {
-	userobj, _ := GetUserObject(context, w)
+func SetLastLoggedIn(context appengine.Context, w http.ResponseWriter) (os.Error) {
+	userobj, err := GetUserObject(context, w)
+	if userobj == nil || err != nil {
+		return os.NewError("No such user: " + user.Current(context).Id)
+	}
 	userobj.LastLogin = datastore.SecondsToTime(time.Seconds())
 	PutUserObject(*userobj, context, w)
-	return
+	return nil
 }
 
 
@@ -107,9 +110,7 @@ func GetTags(tagnames []string, context appengine.Context, w http.ResponseWriter
 func GetUserObject(context appengine.Context, w http.ResponseWriter) (*model.HowlUser, *datastore.Key) {
 	hu := new(model.HowlUser)
 	key := datastore.NewKey("HowlUser", user.Current(context).String(), 0, nil)
-
 	log.Println("Looking for user with Id " + user.Current(context).String())
-
 	if err := datastore.Get(context, key, hu); err != nil {
 		log.Println("Error fetching HowlUser object: " + err.String())
         return nil, key
@@ -123,16 +124,16 @@ func GetUserObject(context appengine.Context, w http.ResponseWriter) (*model.How
 func PutUserObject (hu model.HowlUser, context appengine.Context, w http.ResponseWriter) {
 	// Set values known to the datastore
 	hu.LastLogin = datastore.SecondsToTime(time.Seconds())
-	hu.Id = user.Current(context).String()
+	hu.Uid = user.Current(context).String()
 	hu.Email = user.Current(context).Email
-	key := datastore.NewKey("HowlUser", hu.Id, 0, nil)
+	key := datastore.NewKey("HowlUser", hu.Uid, 0, nil)
 	// Make persistent
     _, err := datastore.Put(context, key, &hu)
 	if err != nil {
         http.Error(w, "Error storing new user profile: " + err.String(), http.StatusInternalServerError)
         return
     }
-	log.Println("Made persistent new user profile for " + hu.Name + " with id " + hu.Id) 
+	log.Println("Made persistent new user profile for " + hu.Name + " with id " + hu.Uid) 
 	return
 }
 
@@ -150,8 +151,8 @@ func PutDataStreamObject(sc model.StreamConfiguration, ds model.DataStream,
 	                     w http.ResponseWriter) {
 	// Deal with keys
 	userObj, userKey := GetUserObject(context, w)
-	dsKey := datastore.NewKey("DataStream", userObj.Id + ds.Name, 0, nil)
-	scKey := datastore.NewKey("StreamConfiguration", "Config" + userObj.Id + ds.Name, 0, nil)
+	dsKey := datastore.NewKey("DataStream", userObj.Uid + ds.Name, 0, nil)
+	scKey := datastore.NewKey("StreamConfiguration", "Config" + userObj.Uid + ds.Name, 0, nil)
 	// Deal with tags.
 	tagKeys, _ := GetTags(tagnames, context, w)
 	ds.Tags = tagKeys
@@ -175,11 +176,11 @@ func PutDataStreamObject(sc model.StreamConfiguration, ds model.DataStream,
 
 func GetStreamsOwnedByUser (context appengine.Context, w http.ResponseWriter) ([]model.DataStream) {
 	user, userKey := GetUserObject(context, w)
-	log.Println("Looking for datastreams owned by: " + user.Id)
+	log.Println("Looking for datastreams owned by: " + user.Uid)
 	streams := make([]model.DataStream, 0, 100) // FIXME: Magic number
 	q := datastore.NewQuery("DataStream").Filter("Owner=", userKey).Limit(10) 
 	if _, err := q.GetAll(context, &streams); err != nil {
-		log.Println("Error fetching DataStream objects for user " + user.Id + ": " + err.String())
+		log.Println("Error fetching DataStream objects for user " + user.Uid + ": " + err.String())
         http.Error(w, err.String(), http.StatusInternalServerError)
         return nil
     }

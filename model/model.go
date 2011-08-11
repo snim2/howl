@@ -30,13 +30,11 @@ import (
  */
 type HowlUser struct {
 	Name				 string // "Real" name.
-//  Uname                string // Must be unique.
-	Id					 string // FIXME remove.
+	Uid			         string
 	Email				 string // Taken from Google account.
 	About				 string
 	Url                  string
 	LastLogin            datastore.Time // FIXME See controller package.
-	DisplayStartupDocs	 bool   // FIXME remove.
 }
 
 

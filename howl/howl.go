@@ -40,7 +40,7 @@ func init() {
 
 	// Especially for web browsers
     http.HandleFunc("/dashboard", view.DashboardHandler)
-    http.HandleFunc("/", view.IndexHandler)
+    http.HandleFunc("/", view.DashboardHandler)
 
     // http.HandleFunc("/user", view.UserHandler)
     // http.HandleFunc("/stream", view.StreamHandler)

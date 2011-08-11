@@ -58,6 +58,7 @@ type DashboardPage struct {
 
 }
 
+
 /* Struct to store data for the newUserTemplate template.
  */
 type NewUserPage struct {
@@ -87,38 +88,23 @@ func renderTemplateFromFile(templ *template.Template, tempData interface{}, w ht
  *
  * If user.User is nil, then the user could not be logged in.
  */
-func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, *user.User) {
+func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, *model.HowlUser) {
+	log.Println("Checking that user is logged in and has a HowlUser object")
     context := appengine.NewContext(r)
-    uname := user.Current(context)
-    if uname == nil {
-		_, err := user.LoginURL(context, r.URL.String())
-        if err != nil {
-            http.Error(w, err.String(), http.StatusInternalServerError) // 500
-			return context, nil
-        }
-		CreateNewUserHandler(w, r)
-//		renderTemplateFromFile(signInTemplate, url, w)
+    g_user := user.Current(context)
+    if g_user == nil {
+		url, _ := user.LoginURL(context, r.URL.String())
+		log.Println("No username, user not logged in with Google account.")
+		renderTemplateFromFile(signInTemplate, url, w)
 		return context, nil
     }
-	return context, uname
-}
-
-
-/* Handle the index page. 
- *
- * This is used when the user first logs in, to set their 
- * LastLoggedIn field, then pass control to the DashboardHandler.
- */
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	context, uname := verifyLoggedIn(w, r)
-	if uname == nil { 
-		login_url, _ := user.LoginURL(context, r.URL.String())
-		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
+	userobj, _ := controller.GetUserObject(context, w)
+	if userobj == nil {
+		log.Println("Cannot find a HowlUser object for this user.")
+		NewUserHandler(w, r)
+		return nil, nil
 	}
-	// Kernel PANIC! FIXME
-	controller.SetLastLoggedIn(context, w)
-	DashboardHandler(w, r)
-	return
+	return context, userobj
 }
 
 
@@ -131,14 +117,12 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
  * FIXME: Owned / shared providers
  */
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	context, uname := verifyLoggedIn(w, r)
-	if uname == nil { 
-		login_url, _ := user.LoginURL(context, r.URL.String())
-		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
-	}
+	context, userobj := verifyLoggedIn(w, r)
+	if userobj == nil { return } // Will have already redirected to login page.
 	// Get logout URL
 	logout, _ := user.LogoutURL(context, "/")
 	// Get streams owned by this user
+	log.Println("About to look for streams owned by user.")
 	streams := controller.GetStreamsOwnedByUser(context, w)
 	log.Println(fmt.Sprintf("Found %v data streams for current user.", len(streams)))
 //	log.Println(reflect.TypeOf(streams).String())
@@ -146,7 +130,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: Get providers owned by user
 	// TODO: Get providers shared with user
 	// Render.
-	dp := DashboardPage{User:uname.String(), Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
+	dp := DashboardPage{User:userobj.Uid, Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
 	renderTemplateFromFile(dashTemplate, dp, w)
 	return
 }
@@ -155,15 +139,13 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 /* Page to configure a new user profile.
  */
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
-	context, uname := verifyLoggedIn(w, r)
-	if uname == nil {
-		login_url, _ := user.LoginURL(context, r.URL.String())
-		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
-	}
+	log.Println("New user handler running.")
+    context := appengine.NewContext(r)
+    g_user := user.Current(context)
 	// Get logout URL
 	logout, _ := user.LogoutURL(context, "/")
 	// Render page
-	nup := NewUserPage{User:uname.String(), Signout:logout}
+	nup := NewUserPage{User:g_user.String(), Signout:logout}
 	renderTemplateFromFile(newUserTemplate, nup, w)
 	return
 }
@@ -172,25 +154,15 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 /* Create a new user, usually in response to a POST request.
  */
 func CreateNewUserHandler(w http.ResponseWriter, r *http.Request) {
-	context, uname := verifyLoggedIn(w, r)
-	if uname.Id == "" {
-		login_url, _ := user.LoginURL(context, r.URL.String())
-		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
-	}
-	// Get value of checkbox
-	docs := false;
-	if r.FormValue("startupdocs") == "docs" {
-		docs = true
-	} 
+    context := appengine.NewContext(r)
 	// Create model object
 	hu := model.HowlUser{Name:r.FormValue("name"), 
-	                     Url:r.FormValue("url"), About:r.FormValue("about"),
-	                     DisplayStartupDocs:docs}
+	                     Url:r.FormValue("url"), 
+	                     About:r.FormValue("about"),}
 	log.Println("Created new user profile for " + r.FormValue("name")) 
 	// Make persistant 
 	controller.PutUserObject(hu, context, w)
-	// Go to homepage
-	http.Redirect(w, r, "/", http.StatusFound)
+	DashboardHandler(w, r)
 	return
 }
 
@@ -198,11 +170,8 @@ func CreateNewUserHandler(w http.ResponseWriter, r *http.Request) {
 /* Create a new data stream, usually in response to a POST request.
  */
 func CreateDataStreamHandler(w http.ResponseWriter, r *http.Request) {
-	context, uname := verifyLoggedIn(w, r)
-	if uname.Id == "" {
-		login_url, _ := user.LoginURL(context, r.URL.String())
-		http.Error(w, "You may not access this page until you are <a href=\"" + login_url + "\"logged in.</a> ", http.StatusForbidden) // 403
-	}
+	context, userobj := verifyLoggedIn(w, r)
+	if userobj == nil { return } // Will have already redirected to login page.
 	// Reformat form data
 	pkey, errkey := strconv.Atoi64(r.FormValue("pachubefeedid"))
 	if errkey != nil {
