@@ -48,7 +48,7 @@ var (
 	signInTemplate		= template.MustParseFile("sign.html",      nil)
 	streamTemplate		= template.MustParseFile("stream.html",    nil)
 	dashTemplate		= template.MustParseFile("dashboard.html", nil)
-	newUserTemplate		= template.MustParseFile("newuser.html",   nil)
+	newUserTemplate		= template.MustParseFile("profile.html",   nil)
 )
 
 

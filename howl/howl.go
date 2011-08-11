@@ -37,14 +37,13 @@ import (
  */
 func init() {
 	// Especially for web browsers.
-    http.HandleFunc("/dashboard", view.DashboardHandler)
-    http.HandleFunc("/", view.DashboardHandler)
-
+    http.HandleFunc("/",						view.DashboardHandler)
+	http.HandleFunc("/dashboard",				view.DashboardHandler)
 	// RESTful interface.
-    http.HandleFunc("/user", view.UserHandler)
-    http.HandleFunc("/user/([^/]+)/profile", view.ProfileHandler)
-    http.HandleFunc("/stream", view.StreamHandler)
-    http.HandleFunc("/provider", view.ProviderHandler)
-    http.HandleFunc("/datum", view.DatumHandler)
+    http.HandleFunc("/user",					view.UserHandler)
+    http.HandleFunc("/user/([^/]+)/profile",	view.ProfileHandler)
+    http.HandleFunc("/stream",					view.StreamHandler)
+    http.HandleFunc("/provider",                view.ProviderHandler)
+    http.HandleFunc("/datum",					view.DatumHandler)
 }
 
