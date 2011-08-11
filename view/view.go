@@ -25,8 +25,10 @@ import (
     "appengine/user"
 	"fmt"
 	"http"
+	"io"
 	"log"
-//	"reflect"
+	"os"
+//	"reflect" // Used only for debugging.
 	"strconv"
 	"strings"
 	"template"
@@ -38,11 +40,15 @@ import (
 )
 
 
-var ( // HTML templates
-	signInTemplate		= template.MustParseFile("sign.html", nil)
-	streamTemplate		= template.MustParseFile("stream.html", nil)
+/* HTML templates.
+ *
+ * These are stored in the top level directory of the app.
+ */
+var ( 
+	signInTemplate		= template.MustParseFile("sign.html",      nil)
+	streamTemplate		= template.MustParseFile("stream.html",    nil)
 	dashTemplate		= template.MustParseFile("dashboard.html", nil)
-	newUserTemplate		= template.MustParseFile("newuser.html", nil)
+	newUserTemplate		= template.MustParseFile("newuser.html",   nil)
 )
 
 
@@ -55,7 +61,6 @@ type DashboardPage struct {
 	SharedStreams   []model.DataStream
 	OwnedProviders  []model.DataProvider
 	SharedProviders []model.DataProvider
-
 }
 
 
@@ -67,9 +72,32 @@ type NewUserPage struct {
 }
 
 
-/* Apply an html template and render.
+/* Serve a Not Found page.
  *
- * @param templ an html template 
+ * TODO: Add a styled template.
+ */
+func serve404(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	io.WriteString(w, "Not Found")
+}
+
+
+/* Serve an error page and response.
+ *
+ * TODO: Add an error page template.
+ */
+func serveError(c appengine.Context, w http.ResponseWriter, err os.Error) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	io.WriteString(w, "Internal Server Error")
+	c.Errorf("%v", err)
+}
+
+
+/* Apply an HTML template and render.
+ *
+ * @param templ an HTML template 
  * @tempData usually a struct passed to the template 
  * @w the response writer that should render the template
  */
@@ -98,10 +126,10 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
 		renderTemplateFromFile(signInTemplate, url, w)
 		return context, nil
     }
-	userobj, _ := controller.GetUserObject(context, w)
+	userobj, _ := controller.GetCurrentHowlUser(context, w)
 	if userobj == nil {
 		log.Println("Cannot find a HowlUser object for this user.")
-		NewUserHandler(w, r)
+		ProfileHandler(w, r)
 		return nil, nil
 	}
 	return context, userobj
@@ -117,15 +145,17 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
  * FIXME: Owned / shared providers
  */
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("DashboardHandler got request with method: " + r.Method)
 	context, userobj := verifyLoggedIn(w, r)
-	if userobj == nil { return } // Will have already redirected to login page.
+	// If the user has not created a profile the app Will have already
+	// redirected to login page.
+	if userobj == nil { return } 
 	// Get logout URL
 	logout, _ := user.LogoutURL(context, "/")
 	// Get streams owned by this user
 	log.Println("About to look for streams owned by user.")
 	streams := controller.GetStreamsOwnedByUser(context, w)
 	log.Println(fmt.Sprintf("Found %v data streams for current user.", len(streams)))
-//	log.Println(reflect.TypeOf(streams).String())
 	// TODO: Get streams shared with user
 	// TODO: Get providers owned by user
 	// TODO: Get providers shared with user
@@ -136,59 +166,113 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+/* Handle requests relating to users. 
+ *
+ * By default present a view of a given user. 
+ *
+ * If URL is appended with ?action=edit or ?action=delete
+ * then perform the appropriate CRUD action
+ *
+ * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
+ */
+func UserHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("UserHandler got request with method: " + r.Method)
+	return
+}
+
+
+/* Handle requests relating to streams. 
+ *
+ * By default present a view of a given data stream. 
+ *
+ * If URL is appended with ?action=edit or ?action=delete
+ * then perform the appropriate CRUD action
+ *
+ * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
+ */
+func StreamHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("StreamHandler got request with method: " + r.Method)
+	if r.Method == "POST" {
+		context, userobj := verifyLoggedIn(w, r)
+		if userobj == nil { return } // Will have already redirected to login page.
+		// Reformat form data
+		pkey, errkey := strconv.Atoi64(r.FormValue("pachubefeedid"))
+		if errkey != nil {
+			pkey = 0
+		}
+		// Get a list of tags
+		tagnames := strings.Split(r.FormValue("tags"), ",", -1)
+		for i := 0; i < len(tagnames); i++ {		
+			tagnames[i] = strings.Trim(tagnames[i], " ")
+		}
+		// Create new objects in model
+		sc := model.StreamConfiguration{PachubeKey:r.FormValue("pachubekey"), PachubeFeedId:pkey, TwitterName:r.FormValue("twitteraccount"), TwitterToken:r.FormValue("twittertoken"), TwitterTokenSecret:r.FormValue("twittertokensecret")}
+		ds := model.DataStream{Name:r.FormValue("name"), Description:r.FormValue("description"), Url:r.FormValue("url")}
+		// Make persistent
+		controller.PutDataStreamObject(sc, ds, tagnames, context, w)
+		// Return to home page
+		http.Redirect(w, r, "/", http.StatusFound) // FIXME Wrong status returned?
+		return
+	}
+
+	return
+}
+
+
+/* Handle requests relating to data providers. 
+ *
+ * By default present a view of a given data provider. 
+ *
+ * If URL is appended with ?action=edit or ?action=delete
+ * then perform the appropriate CRUD action
+ *
+ * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
+ */
+func ProviderHandler(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+
+/* Handle requests relating to data values. 
+ *
+ * By default present a view of a given datum. 
+ *
+ * If URL is appended with ?action=edit or ?action=delete
+ * then perform the appropriate CRUD action
+ *
+ * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
+ */
+func DatumHandler(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+
 /* Page to configure a new user profile.
  */
-func NewUserHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("New user handler running.")
-    context := appengine.NewContext(r)
-    g_user := user.Current(context)
-	// Get logout URL
-	logout, _ := user.LogoutURL(context, "/")
-	// Render page
-	nup := NewUserPage{User:g_user.String(), Signout:logout}
-	renderTemplateFromFile(newUserTemplate, nup, w)
-	return
-}
-
-
-/* Create a new user, usually in response to a POST request.
- */
-func CreateNewUserHandler(w http.ResponseWriter, r *http.Request) {
-    context := appengine.NewContext(r)
-	// Create model object
-	hu := model.HowlUser{Name:r.FormValue("name"), 
-	                     Url:r.FormValue("url"), 
-	                     About:r.FormValue("about"),}
-	log.Println("Created new user profile for " + r.FormValue("name")) 
-	// Make persistant 
-	controller.PutUserObject(hu, context, w)
-	DashboardHandler(w, r)
-	return
-}
-
-
-/* Create a new data stream, usually in response to a POST request.
- */
-func CreateDataStreamHandler(w http.ResponseWriter, r *http.Request) {
-	context, userobj := verifyLoggedIn(w, r)
-	if userobj == nil { return } // Will have already redirected to login page.
-	// Reformat form data
-	pkey, errkey := strconv.Atoi64(r.FormValue("pachubefeedid"))
-	if errkey != nil {
-		pkey = 0
+func ProfileHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("ProfileHandler got request with method: " + r.Method)
+	if r.Method == "GET" {
+		context := appengine.NewContext(r)
+		g_user := user.Current(context)
+		// Get logout URL
+		logout, _ := user.LogoutURL(context, "/")
+		// Render page
+		nup := NewUserPage{User:g_user.String(), Signout:logout}
+		renderTemplateFromFile(newUserTemplate, nup, w)
+		return
 	}
-	// Get a list of tags
-	tagnames := strings.Split(r.FormValue("tags"), ",", -1)
-	for i := 0; i < len(tagnames); i++ {		
-		tagnames[i] = strings.Trim(tagnames[i], " ")
+	if r.Method == "POST" {
+		context := appengine.NewContext(r)
+		// Create model object
+		hu := model.HowlUser{Name:r.FormValue("name"), 
+	                         Url:r.FormValue("url"), 
+	                         About:r.FormValue("about"),}
+		log.Println("Created new user profile for " + r.FormValue("name")) 
+		// Make persistant 
+		controller.PutUserObject(hu, context, w)
+		req, _ := http.NewRequest("GET", "/", r.Body)
+		http.Redirect(w, req, "/", 302)
+		return
 	}
-	// Create new objects in model
-	sc := model.StreamConfiguration{PachubeKey:r.FormValue("pachubekey"), PachubeFeedId:pkey, TwitterName:r.FormValue("twitteraccount"), TwitterToken:r.FormValue("twittertoken"), TwitterTokenSecret:r.FormValue("twittertokensecret")}
-	ds := model.DataStream{Name:r.FormValue("name"), Description:r.FormValue("description"), Url:r.FormValue("url")}
-	// Make persistent
-	controller.PutDataStreamObject(sc, ds, tagnames, context, w)
-	// Return to home page
-	http.Redirect(w, r, "/", http.StatusFound)
-	return
 }
 

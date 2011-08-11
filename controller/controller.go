@@ -23,7 +23,6 @@ import (
     "appengine/user"
 	"appengine/datastore"
 	"http"
-	"io"
 	"log"
 	"os"
 	"reflect"
@@ -37,21 +36,6 @@ import (
 
 // TODO: Factor our PUTs and GETs (remember singleton get/put)
 // TODO: Turn PUTs / GETs into Memcache calls
-
-
-func serve404(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusNotFound)
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	io.WriteString(w, "Not Found")
-}
-
-
-func serveError(c appengine.Context, w http.ResponseWriter, err os.Error) {
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	io.WriteString(w, "Internal Server Error")
-	c.Errorf("%v", err)
-}
 
 
 /* Place an object in the datastore.
@@ -74,7 +58,7 @@ func put(context appengine.Context, key datastore.Key, error string, object inte
 
 
 func SetLastLoggedIn(context appengine.Context, w http.ResponseWriter) (os.Error) {
-	userobj, err := GetUserObject(context, w)
+	userobj, err := GetCurrentHowlUser(context, w)
 	if userobj == nil || err != nil {
 		return os.NewError("No such user: " + user.Current(context).Id)
 	}
@@ -120,7 +104,7 @@ func GetTags(tagnames []string, context appengine.Context, w http.ResponseWriter
 
 /* Retreive a user object in the model, from an appengine user object.
  */
-func GetUserObject(context appengine.Context, w http.ResponseWriter) (*model.HowlUser, *datastore.Key) {
+func GetCurrentHowlUser(context appengine.Context, w http.ResponseWriter) (*model.HowlUser, *datastore.Key) {
 	hu := new(model.HowlUser)
 	key := datastore.NewKey("HowlUser", user.Current(context).String(), 0, nil)
 	log.Println("Looking for user with Id " + user.Current(context).String())
@@ -163,7 +147,7 @@ func PutDataStreamObject(sc model.StreamConfiguration, ds model.DataStream,
 	                     tagnames []string, context appengine.Context, 
 	                     w http.ResponseWriter) {
 	// Deal with keys
-	userObj, userKey := GetUserObject(context, w)
+	userObj, userKey := GetCurrentHowlUser(context, w)
 	dsKey := datastore.NewKey("DataStream", userObj.Uid + ds.Name, 0, nil)
 	scKey := datastore.NewKey("StreamConfiguration", "Config" + userObj.Uid + ds.Name, 0, nil)
 	// Deal with tags.
@@ -188,7 +172,7 @@ func PutDataStreamObject(sc model.StreamConfiguration, ds model.DataStream,
 
 
 func GetStreamsOwnedByUser (context appengine.Context, w http.ResponseWriter) ([]model.DataStream) {
-	user, userKey := GetUserObject(context, w)
+	user, userKey := GetCurrentHowlUser(context, w)
 	log.Println("Looking for datastreams owned by: " + user.Uid)
 	streams := make([]model.DataStream, 0, 100) // FIXME: Magic number
 	q := datastore.NewQuery("DataStream").Filter("Owner=", userKey).Limit(10) 

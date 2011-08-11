@@ -1,5 +1,6 @@
 /* Model of data stored in Howl.
  * TODO: Document how keys are generated and used.
+ * TODO: Move functions from the controller package to methods here.
  * 
  * Copyright (C) Sarah Mount, 2011.
  * 

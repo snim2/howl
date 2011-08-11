@@ -32,30 +32,19 @@ import (
 /* init() routes requests to the appropriate handlers.
  *
  * The design of this API should be RESTful in the sense of (Fielding, 2005).
+ *
+ * INVARIANT: This should be the only init() method in the application.
  */
 func init() {
-    http.HandleFunc("/newstream", view.CreateDataStreamHandler)  // Should be /stream?action=create or PUT
-    http.HandleFunc("/newuser", view.NewUserHandler)
-    http.HandleFunc("/createnewuser", view.CreateNewUserHandler) // Should be /user?action=create or PUT
-
-	// Especially for web browsers
+	// Especially for web browsers.
     http.HandleFunc("/dashboard", view.DashboardHandler)
     http.HandleFunc("/", view.DashboardHandler)
 
-    // http.HandleFunc("/user", view.UserHandler)
-    // http.HandleFunc("/stream", view.StreamHandler)
-    // http.HandleFunc("/provider", view.ProviderHandler)
-    // http.HandleFunc("/datum", view.DatumHandler)
+	// RESTful interface.
+    http.HandleFunc("/user", view.UserHandler)
+    http.HandleFunc("/user/([^/]+)/profile", view.ProfileHandler)
+    http.HandleFunc("/stream", view.StreamHandler)
+    http.HandleFunc("/provider", view.ProviderHandler)
+    http.HandleFunc("/datum", view.DatumHandler)
 }
 
-/*
-From StackOverflow
-
-application = webapp.WSGIApplication([
-    ('/user/([^/]+)/([^/]+)', UserHandler),
-    ], debug=True)
-
-class UserHandler(webapp.RequestHandler):
-  def get(self, user_id, action_to_consume):
-    self.response.out.write("Action %s" % action_to_consume)#Should print History
-*/
