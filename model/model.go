@@ -1,6 +1,7 @@
 /* Model of data stored in Howl.
  * TODO: Document how keys are generated and used.
  * TODO: Move functions from the controller package to methods here.
+ * TODO: To make the RESTful interface simpler, each model.type should implement CRUD methods
  * 
  * Copyright (C) Sarah Mount, 2011.
  * 
@@ -21,7 +22,12 @@
 package model
 
 import (
+	"appengine"
     "appengine/datastore"
+    "appengine/user"
+	"log"
+	"os" // TODO decide whether to use os.NewError or a custom type
+	"time"
 )
 
 
@@ -36,6 +42,60 @@ type HowlUser struct {
 	About				 string
 	Url                  string
 	LastLogin            datastore.Time
+}
+
+
+func (*HowlUser) Create(context appengine.Context, name string, uid string, about string, url string) (*datastore.Key, *os.Error) {
+	email := user.Current(context).Email
+	login := datastore.SecondsToTime(time.Seconds())
+	hu := &HowlUser{name, uid, email, about, url, login}
+	key := datastore.NewKey("HowlUser", hu.Uid, 0, nil)
+    _, err := datastore.Put(context, key, &hu)
+	if err != nil {
+        log.Println("Error storing new user profile: " + err.String())
+        return nil, &err
+    }
+	log.Println("Created persistent new user profile for " + hu.Name + " with id " + hu.Uid) 
+	return key, nil
+}
+
+
+func (*HowlUser) Read(context appengine.Context, key *datastore.Key) (*HowlUser, *os.Error) {
+	hu := new(HowlUser)
+	err := datastore.Get(context, key, hu)
+	if err != nil {
+		log.Println("Error fetching HowlUser object: " + err.String())		
+		return nil, &err
+	} 
+	return hu, nil
+}
+
+
+func (*HowlUser) Query(context appengine.Context, query *datastore.Query) ([]HowlUser, []*datastore.Key, *os.Error) {
+	hus := make([]HowlUser, 0, 100) // FIXME magic number
+	keys, err := query.GetAll(context, &hus); 
+	if err != nil {
+		log.Println("Error fetching HowlUser object: " + err.String())
+        return nil, nil, &err
+    }
+	return hus, keys, nil
+}
+
+
+func (*HowlUser) Update(context appengine.Context, newUser *HowlUser) (*os.Error) {
+	key := datastore.NewKey("HowlUser", newUser.Uid, 0, nil) 
+    _, err := datastore.Put(context, key, &newUser)
+	if err != nil {
+        log.Println("Error storing new entity: " + err.String())
+        return &err
+    }
+	return nil
+}
+
+
+func (*HowlUser) Delete(context appengine.Context, key *datastore.Key) (*os.Error) {
+	err := datastore.Delete(context, key)
+	return &err
 }
 
 
