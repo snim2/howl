@@ -19,8 +19,50 @@
 
 	<div class="container">
 
+
+	  <div class="blueblock">
+	  	<h2><a name="blueblock">Create a new stream</a></h2>
+	  	<form action="/stream/?action=create" method="post" class="form">
+	  	  <div>
+			<fieldset>
+			  <legend>Create new stream</legend>
+	  		  <p><label for="name">Name</label><input type="text" name="name"/></p>
+	  		  <p><label for="url">Url</label><input type="text" name="url"/></p>
+	  		  <p><label for="description">Description</label><textarea name="description" rows="5" cols="44"></textarea></p>
+			  <p><label for="tags">Tags (comma separated)</label><input type="text" name="tags"/></p>
+
+			  <h4>Periodically pull data from a URL</h4>
+			  <p><label for="pullurl">URL</label><input type="text" name="pullurl"/></p>
+
+			  <h4>Configure services to push data to</h4>
+			  <p><strong>Pachube</strong></p>
+	  		  <p><label for="pachubekey">API key</label><input type="text" name="pachubekey"/></p>
+	  		  <p><label for="pachubefeedid">Feed</label><input type="text" name="pachubefeedid"/></p>
+			  <p><strong>Twitter</strong></p>
+	  		  <p><label for="twitteraccount">Account</label><input type="text" name="twitteraccount"/></p>
+	  		  <p><label for="twittertoken">Token</label><input type="text" name="twittertoken"/></p>
+
+			  <h4>Add data providers to this stream</h4>
+			  <p>
+				{.section OwnedProviders}
+				<select>
+			  	  {.repeated section OwnedProviders}
+			  	  <option value="{Name}">{Name}</option>
+				  {.end}
+				</select>
+				{.or}
+				You have no data providers defined, why not <a href="/provider/?action=create">create one!</a>
+			  </p>
+			  {.end}
+	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Create"/></p>
+			</fieldset>
+	  	  </div>
+	  	</form>
+	  </div>
+
+
 	  <div class="redblock">
-		<h2>Your data streams</h2>
+		<h2>Your other data streams</h2>
 		{.section OwnedStreams}
 		{.repeated section @}
 		<h3>{Name|html}</h3>
@@ -37,43 +79,7 @@
 		{.end}
 		<p>Create a <a href="#blueblock">new stream!</a></p>
 		{.or}
-		<p>You currently have no data streams defined, why not <a href="/stream/?action=create">create one!</a></p>
-		{.end}
-	  </div>
-
-	  <div class="greenblock">
-		<h2>Data streams shared with you</h2> 
-		{.section SharedStreams}
-		{.repeated section SharedStreams}
-		<h3><a href="{Url}">{Name|html}</a></h3>
-		<p>{Description|html}</p>
-		{.end}
-		{.or}
-		<p>No users have shared data streams with you, why not <a href="/stream/?action=create">create one</a>!</p>
-		{.end}
-	  </div>
-
-	  <div class="blueblock">
-		<h2><a name="blueblock">Your data providers</a></h2>
-		{.section OwnedProviders}
-		{.repeated section OwnedProviders}
-		<h3><a href="{Url}">{Name|html}</a></h3>
-		<p>{Description|html}</p>
-		{.end}
-		{.or}
-		<p>You currently have no data providers defined, why not <a href="/provider/?action=create">create one!</a></p>
-		{.end}
-	  </div>
-
-	  <div class="greyblock">
-		<h2><a name="greyblock">Data providers shared with you</a></h2>
-		{.section SharedProviders}
-		{.repeated section SharedProviders}
-		<h3><a href="{Url}">{Name|html}</a></h3>
-		<p>{Description|html}</p>
-		{.end}
-		{.or}
-		<p>You currently have no data providers defined, why not <a href="/provider/?action=create">create one!</a></p>
+		<p>You currently have no data streams defined, why not <a href="#blueblock">create one!</a></p>
 		{.end}
 	  </div>
 
