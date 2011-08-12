@@ -108,12 +108,16 @@ func GetCurrentHowlUser(context appengine.Context, w http.ResponseWriter) (*mode
 	hu := make([]model.HowlUser, 0, 1)
 	email := user.Current(context).Email
 	query := datastore.NewQuery("HowlUser").Filter("Email =", email).Limit(1)
-	log.Println("Looking for user with Id " + user.Current(context).String())
+	log.Println("Looking for user with address " + email)
 	keys, err := query.GetAll(context, &hu); 
 	if err != nil {
 		log.Println("Error fetching HowlUser object: " + err.String())
-        return nil, keys[0]
+        return nil, nil
     }
+	if len(keys) == 0 {
+		log.Println("No such user " + email)
+		return nil, nil
+	}
 	return &hu[0], keys[0]
 }
 

@@ -36,16 +36,16 @@ import (
  * INVARIANT: This should be the only init() method in the application.
  */
 func init() {
-	// Especially for web browsers.
-    http.HandleFunc("/",						view.DashboardHandler)
-	http.HandleFunc("/dashboard",				view.DashboardHandler)
-	// Check the uniqueness of a uid in the datastore.
-	http.HandleFunc("/checkuid",				view.CheckUidHandler)
 	// RESTful interface.
+    http.HandleFunc("/user/([^/]+)/",	        view.UserHandler)
     http.HandleFunc("/user",					view.UserHandler)
-    http.HandleFunc("/user/([^/]+)/profile",	view.ProfileHandler)
     http.HandleFunc("/stream",					view.StreamHandler)
     http.HandleFunc("/provider",                view.ProviderHandler)
     http.HandleFunc("/datum",					view.DatumHandler)
+	// Especially for web browsers.
+	http.HandleFunc("/dashboard",				view.DashboardHandler)
+    http.HandleFunc("/",						view.DashboardHandler)
+	// Check the uniqueness of a uid in the datastore.
+	http.HandleFunc("/checkuid",				view.CheckUidHandler)
 }
 
