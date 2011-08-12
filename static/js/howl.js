@@ -2,13 +2,6 @@
  * Miscellaneous Javascript for templates.
  */
 
-function topbar_redirect(opt) {
-	if (opt.selectedIndex > 0) {
-		window.location = opt.options[opt.selectedIndex].value;
-	}
-	return;
-}
-
 
 /* Chart drawing with dygraphs. 
 
