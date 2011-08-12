@@ -120,12 +120,28 @@ type Comment struct {
 }
 
 
+/* A CommentList is a list of tags.
+ */
+type CommentList struct {
+	CommenttList []*datastore.Key
+}
+
+
 /* A Tag is a user-defined piece of metadata.
  *
  * Tags must always be Singletons in the datastore.
  */
 type Tag struct {
 	Tag string
+}
+
+
+/* A TagList is a list of tags.
+ *
+ * Tags must always be Singletons in the datastore.
+ */
+type TagList struct {
+	TagList []*datastore.Key
 }
 
 
