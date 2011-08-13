@@ -134,7 +134,7 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
 		renderTemplateFromFile(signInTemplate, url, w)
 		return context, nil
     }
-	userobj, _ := controller.GetCurrentHowlUser(context, w)
+	userobj, _ := controller.GetCurrentHowlUser(context)
 	if userobj == nil {
 		log.Println("Cannot find a HowlUser object for this user.")
 		ProfileHandler(w, r)
@@ -157,6 +157,7 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
  */
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("DashboardHandler got request with method: " + r.Method)
+	log.Println(r.URL.String())
 	context, userobj := verifyLoggedIn(w, r)
 	// If the user has not created a profile the app Will have already
 	// redirected to login page.
@@ -210,6 +211,25 @@ func CheckUidHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+// ************************************************************************** //
+
+
+/* Route requests relating to the RESTful interfaces. 
+ *
+ * WRITEME
+ */
+func RestHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("RestHandler got request with method: " + r.Method)
+	log.Println(r.URL.String())
+	if r.URL.String() == "/" {
+		DashboardHandler(w, r)
+		return
+	}
+	fmt.Fprint(w, "RestHandler got request with method: " + r.Method + " :: " + r.URL.String())
+	return
+}
+
+
 /* Handle requests relating to users. 
  *
  * By default present a view of a given user. 
@@ -246,17 +266,11 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// Get a list of tags
 		tagnames := strings.Split(r.FormValue("tags"), ",", -1)
-		for i := 0; i < len(tagnames); i++ {		
-			tagnames[i] = strings.Trim(tagnames[i], " ")
-		}
 		// Create new objects in model
-		sc := model.StreamConfiguration{PachubeKey:r.FormValue("pachubekey"), PachubeFeedId:pkey, TwitterName:r.FormValue("twitteraccount"), TwitterToken:r.FormValue("twittertoken"), TwitterTokenSecret:r.FormValue("twittertokensecret")}
-		ds := model.DataStream{Name:r.FormValue("name"), Description:r.FormValue("description"), Url:r.FormValue("url")}
-		controller.PutDataStreamObject(sc, ds, tagnames, context, w)
+		_ = controller.CreateDataStream(context, r.FormValue("name"), r.FormValue("description"), r.FormValue("url"), tagnames, r.FormValue("pachubekey"), pkey, r.FormValue("twitteraccount"), r.FormValue("twittertoken"), r.FormValue("twittertokensecret"))
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-
 	return
 }
 
@@ -309,7 +323,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	                         Url:r.FormValue("url"), 
 	                         About:r.FormValue("about"),}
 		log.Println("Created new user profile for " + r.FormValue("name")) 
-		controller.PutUserObject(hu, context, w)
+		_, _ = hu.Create(context)
 		req, _ := http.NewRequest("GET", "/", r.Body)
 		http.Redirect(w, req, "/", 302)
 		return

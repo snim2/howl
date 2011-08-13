@@ -25,8 +25,6 @@ import (
 	"http"
 	"log"
 	"os"
-	"reflect"
-	"time"
 )
 
 import (
@@ -34,37 +32,43 @@ import (
 )
 
 
-// TODO: Factor our PUTs and GETs (remember singleton get/put)
-// TODO: Turn PUTs / GETs into Memcache calls
-
-
-/* Place an object in the datastore.
- * TODO: Use memcache.
- *
- * @param context for this particular appengine session
- * @param key datastore key for the object to be stored
- * @param error message to be printed to the log / user in case of error
- * @param object the object to be made persistent
- * @return the key returned by the persistent store (if there is one, nil otherwise) and an error report (if there is one, nil otherwise)
+/* Retreive a user object in the model, from an appengine user object.
  */
-func put(context appengine.Context, key datastore.Key, error string, object interface{}) (*datastore.Key, os.Error) {
-    key_, err := datastore.Put(context, &key, &object)
+func GetCurrentHowlUser(context appengine.Context) (*model.HowlUser, *datastore.Key) {
+	hus := make([]model.HowlUser, 0, 1)
+	email := user.Current(context).Email
+	query := datastore.NewQuery("HowlUser").Filter("Email =", email).Limit(1)
+	log.Println("Looking for user with address " + email)
+	keys, err := new(model.HowlUser).Query(context, query, &hus)
+	if err != nil || len(keys) == 0 {
+		return nil, nil
+	}
+	return &hus[0], keys[0]
+}
+
+
+/* Check the uniqueness of a username in the datastore.
+ *
+ * Returns true if there is no such uid in the datastore, thus the uid will be 
+ * unique in the store.
+ */
+func IsUidUnique(context appengine.Context, uid string) (bool) {
+	_, err := (&model.HowlUser{"", uid, "", "", "", model.Now()}).Read(context)
 	if err != nil {
-		log.Println(error + " " + err.String())
-        return nil, err
-    }
-	return key_, nil
+		log.Println("Datastore error retreiving HowlUser with uid " + uid + ": " + err.String())
+		return true
+	} 
+	return false
 }
 
 
 func SetLastLoggedIn(context appengine.Context, w http.ResponseWriter) (os.Error) {
-	userobj, err := GetCurrentHowlUser(context, w)
+	userobj, err := GetCurrentHowlUser(context)
 	if userobj == nil || err != nil {
 		return os.NewError("No such user: " + user.Current(context).Id)
 	}
-	userobj.LastLogin = datastore.SecondsToTime(time.Seconds())
-	PutUserObject(*userobj, context, w)
-	return nil
+	userobj.LastLogin = model.Now()
+	return userobj.Update(context)
 }
 
 
@@ -77,124 +81,32 @@ func SetLastLoggedIn(context appengine.Context, w http.ResponseWriter) (os.Error
  * It is the responsibility of the calling object to ensure that the strings
  * passed to this function have been trimmed.
  */
-func GetTags(tagnames []string, context appengine.Context, w http.ResponseWriter) ([]*datastore.Key, []model.Tag) {
-	name := new(string)
-	key := new(datastore.Key)
-	tag := new(model.Tag)
-	tags :=  make([]model.Tag, len(tagnames)) 
-	keys :=  make([]*datastore.Key, len(tagnames)) 
-	for i := 0; i < len(tagnames); i++ {		
-		name = &tagnames[i]
-		log.Println(reflect.TypeOf(name))
-		key = datastore.NewKey("Tag", *name, 0, nil)
-		keys[i] = key
-		tag = &model.Tag{Tag:*name}
-		if err := datastore.Get(context, key, tag); err != nil {
-			log.Println("No such tag: " + *name)
-			_, err2 := datastore.Put(context, key, tag)
-			if err2 != nil {
-				log.Println("Could not store Tag: " + *name + " " + err2.String())
-			}
-		}
-		tags[i] = *tag
-    }
-	return keys, tags
+func PutTags(context appengine.Context, tagnames []string) ([]model.Tag, []*datastore.Key, os.Error) {
+	return model.MakeTags(context, tagnames)
 }
+ 
 
+func CreateDataStream(context appengine.Context, name string, description string, url string, tagnames []string, pachubeKey string, pachubeFeedId int64, twitterName string, twitterToken string, twitterTokenSecret string) (os.Error) {
 
-/* Retreive a user object in the model, from an appengine user object.
- */
-func GetCurrentHowlUser(context appengine.Context, w http.ResponseWriter) (*model.HowlUser, *datastore.Key) {
-	hu := make([]model.HowlUser, 0, 1)
-	email := user.Current(context).Email
-	query := datastore.NewQuery("HowlUser").Filter("Email =", email).Limit(1)
-	log.Println("Looking for user with address " + email)
-	keys, err := query.GetAll(context, &hu); 
-	if err != nil {
-		log.Println("Error fetching HowlUser object: " + err.String())
-        return nil, nil
-    }
-	if len(keys) == 0 {
-		log.Println("No such user " + email)
-		return nil, nil
+	key_sc, err_sc := (&model.StreamConfiguration{pachubeKey, pachubeFeedId, twitterName, twitterToken, twitterTokenSecret}).Create(context)	
+	if err_sc != nil {
+		return err_sc
 	}
-	return &hu[0], keys[0]
-}
-
-
-/* Store new user object.
- */
-func PutUserObject (hu model.HowlUser, context appengine.Context, w http.ResponseWriter) {
-	// Set values known to the datastore
-	hu.LastLogin = datastore.SecondsToTime(time.Seconds())
-	hu.Email = user.Current(context).Email
-	key := datastore.NewKey("HowlUser", hu.Uid, 0, nil)
-	// Make persistent
-    _, err := datastore.Put(context, key, &hu)
-	if err != nil {
-        http.Error(w, "Error storing new user profile: " + err.String(), http.StatusInternalServerError)
-        return
-    }
-	log.Println("Made persistent new user profile for " + hu.Name + " with id " + hu.Uid) 
-	return
-}
-
-
-/* Check the uniqueness of a username in the datastore.
- *
- * Returns true if there is no such uid in the datastore, thus the uid will be 
- * unique in the store.
- */
-func IsUidUnique(context appengine.Context, uid string) (bool) {
-	hu := new(model.HowlUser)
-	key := datastore.NewKey("HowlUser", uid, 0, nil) 
-	err := datastore.Get(context, key, hu)
-	if err != nil {
-		log.Println("Datastore error retreiving HowlUser with uid " + uid + ": " + err.String())
-		return true
-	} 
-	return false
-} 
-
-
-/* Store a datastream, and its configurtation in the persistent store.
- *
- * @param sc configuration object for the datastream
- * @param ds new datastream objects
- * @param tagnames list of strings representing tags for the datastream
- * @param context 
- * @param w writer used to write error messages
- */
-func PutDataStreamObject(sc model.StreamConfiguration, ds model.DataStream, 
-	                     tagnames []string, context appengine.Context, 
-	                     w http.ResponseWriter) {
-	// Deal with keys
-	userObj, userKey := GetCurrentHowlUser(context, w)
-	dsKey := datastore.NewKey("DataStream", userObj.Uid + ds.Name, 0, nil)
-	scKey := datastore.NewKey("StreamConfiguration", "Config" + userObj.Uid + ds.Name, 0, nil)
-	// Deal with tags.
-	tagKeys, _ := GetTags(tagnames, context, w)
-	ds.Tags = tagKeys
-	// Store stream configuration
-    _, err := datastore.Put(context, scKey, &sc)
-	if err != nil {
-        http.Error(w, "Error storing stream configuration: " + err.String(), http.StatusInternalServerError)
-		return
-    }
-	// Store data stream
-	ds.Owner = userKey
-	ds.Configuration = scKey
-    _, err = datastore.Put(context, dsKey, &ds)
-	if err != nil {
-        http.Error(w, "Error storing data stream: " + err.String(), http.StatusInternalServerError)
-        return
-    }
-	return
+	_, tagkeys, err_tags := model.MakeTags(context, tagnames)
+	if err_tags != nil {
+		return err_tags
+	}
+	_, key_hu := GetCurrentHowlUser(context)
+	_, err_ds := (&model.DataStream{key_hu, name, description, url, nil, nil, key_sc, tagkeys, nil}).Create(context)
+	if err_ds != nil {
+		return err_ds
+	}
+	return nil
 }
 
 
 func GetStreamsOwnedByUser (context appengine.Context, w http.ResponseWriter) ([]model.DataStream) {
-	user, userKey := GetCurrentHowlUser(context, w)
+	user, userKey := GetCurrentHowlUser(context)
 	log.Println("Looking for datastreams owned by: " + user.Uid)
 	streams := make([]model.DataStream, 0, 100) // FIXME: Magic number
 	q := datastore.NewQuery("DataStream").Filter("Owner=", userKey).Limit(10) 
@@ -204,10 +116,5 @@ func GetStreamsOwnedByUser (context appengine.Context, w http.ResponseWriter) ([
         return nil
     }
 	return streams
-}
-
-
-func GetAllStreamsUserCanAccess (user model.HowlUser, w http.ResponseWriter) ([]model.DataStream) {
-	return nil
 }
 
