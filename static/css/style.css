@@ -494,3 +494,9 @@ button:hover {
 }
 
 
+/* Table */
+
+tr:nth-of-type(even) { 
+	background: #CCCCCC;
+}
+
