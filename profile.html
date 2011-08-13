@@ -4,7 +4,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 	<title>Howl: an Internet of Things experiment</title>
 	<link href='http://fonts.googleapis.com/css?family=Istok+Web' rel='stylesheet' type='text/css'>
-	<link href="../css/style.css" rel="stylesheet" type="text/css" />
+	<link href="/css/style.css" rel="stylesheet" type="text/css" />
 	<script type="text/javascript" src="/js/jquery-1.6.2.min.js" charset="utf-8"></script>
 	<script type="text/javascript" src="/js/profile.js"></script>
 	<script type="text/javascript" src="/js/howl.js"></script>
@@ -13,29 +13,26 @@
 
 	<div class="topbar">
 	  <div class="menu">
-		<a href="/dashboard">Dashboard</a> | Help
+		<a href="/dashboard">Dashboard</a> | <a href="/user/{User}/?action=edit">Profile</a> | Help
 	  </div>
-	  <select name="userform"  ONCHANGE="topbar_redirect(this);">
-	  	<option>{User}</option>
-	  	<option><a href="{Signout}">Sign out</a></option>
-	  </select><noscript><INPUT type="submit" value="Go" name="submit1"/></noscript>
+	  Hi, {User} | <a href="{Signout}">Sign out</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	</div>
 
 	<div class="container">
 
 	  <div class="redblock">
-		<h2>Create a New Profile</h2>
-	  	<form action="/user/{User|html}/profile" method="post" class="form">
+		<h2>Edit your profile</h2> <!--  -->
+	  	<form action="/user/?action=create" method="post" class="form">
 	  	  <div>
 			<fieldset>
 			  <legend>Your profile</legend>
-			  <p><label for="uid">Username</label><input type="text" id="uid" name="uid" value=""/><br/>
+			  <p><label for="uid">Username</label><input type="text" id="uid" name="uid" value="{Uid}"/><br/>
 			  <span class="negative" style="display:block;" id="uid_required">Required</span>
 			  <span class="negative" style="display:none;" id="uid_not_ok">Username not available</span>
 			  <span class="positive" style="display:none;" id="uid_ok">Username available</span></p>
-	  		  <p><label for="name">Full name</label><input type="text" name="name"/></p>
-	  		  <p><label for="url">Homepage</label><input type="text" name="url"/></p>
-	  		  <p><label for="about">About you</label><textarea name="about" rows="5" cols="44"></textarea></p>
+	  		  <p><label for="name">Full name</label><input type="text" name="name" value="{Name}"/></p>
+	  		  <p><label for="url">Homepage</label><input type="text" name="url" value="{Url}"/></p>
+	  		  <p><label for="about">About you</label><textarea name="about" rows="5" cols="44">{Description}</textarea></p>
 
 	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Create"/></p>
 			</fieldset>

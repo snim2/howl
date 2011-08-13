@@ -50,7 +50,7 @@ func Now() datastore.Time {
  * @return the key returned by the persistent store (if there is one, nil otherwise) and an error report (if there is one, nil otherwise)
  */
 func put(context appengine.Context, key *datastore.Key, error string, object interface{}) (*datastore.Key, os.Error) {
-    key_, err := datastore.Put(context, key, &object)
+    key_, err := datastore.Put(context, key, object)
 	if err != nil {
 		log.Println(error + " " + err.String())
         return nil, err
@@ -149,8 +149,7 @@ func (huser *HowlUser) Create(context appengine.Context) (*datastore.Key, os.Err
 	huser.LastLogin = datastore.SecondsToTime(time.Seconds())
 	key := datastore.NewKey("HowlUser", huser.Uid, 0, nil)
 	err_s := "Error storing new user profile for " + huser.Uid
-	key_, err := put(context, key, err_s, huser)
-	return key_, err
+	return put(context, key, err_s, huser)
 }
 
 

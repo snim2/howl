@@ -1,7 +1,5 @@
 /* Web version of the howl view (as in MVC).
  *
- * FIXME: should just route request to different views according to requests.
- * 
  * Copyright (C) Sarah Mount, 2011.
  * 
  * This program is free software; you can redistribute it and/or
@@ -77,6 +75,10 @@ type DashboardPage struct {
 type NewUserPage struct {
 	User		 string
 	Signout		 string
+	Uid          string
+	Name         string
+	Url          string
+	Description  string
 }
 
 
@@ -137,7 +139,7 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
 	userobj, _ := controller.GetCurrentHowlUser(context)
 	if userobj == nil {
 		log.Println("Cannot find a HowlUser object for this user.")
-		ProfileHandler(w, r)
+		UserHandler(w, r)
 		return nil, nil
 	}
 	return context, userobj
@@ -216,31 +218,31 @@ func CheckUidHandler(w http.ResponseWriter, r *http.Request) {
 
 /* Route requests relating to the RESTful interfaces. 
  *
- * WRITEME
  */
 func RestHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("RestHandler got request with method: " + r.Method)
-	log.Println(r.URL.String())
+	log.Println("RestHandler got request with method: " + r.Method + " and URL: " + r.URL.String())
 	if r.URL.String() == "/" {
 		DashboardHandler(w, r)
 		return
 	}
-	fmt.Fprint(w, "RestHandler got request with method: " + r.Method + " :: " + r.URL.String())
-	return
-}
-
-
-/* Handle requests relating to users. 
- *
- * By default present a view of a given user. 
- *
- * If URL is appended with ?action=edit or ?action=delete
- * then perform the appropriate CRUD action
- *
- * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
- */
-func UserHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("UserHandler got request with method: " + r.Method)
+	paths := strings.Split(r.URL.Path, "/", -1)
+	if len(paths) == 0 {
+		serve404(w)
+		return
+	}
+	log.Println("Rest got initial path: " + paths[1])
+	switch paths[1] {
+	case "user":
+		UserHandler(w, r)
+		return
+	case "stream":
+		StreamHandler(w, r)
+		return
+	case "provider":
+		ProviderHandler(w, r)
+		return
+	}
+	serve404(w)
 	return
 }
 
@@ -304,14 +306,33 @@ func DatumHandler(w http.ResponseWriter, r *http.Request) {
 
 
 /* Page to configure a user profile.
+ *
+ * By default present a view of a given user. 
+ *
+ * If URL is appended with ?action=edit or ?action=delete
+ * then perform the appropriate CRUD action
+ *
+
  */
-func ProfileHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("ProfileHandler got request with method: " + r.Method)
+func UserHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("UserHandler got request with method: " + r.Method)
 	if r.Method == "GET" {
 		context := appengine.NewContext(r)
+		hu, _ := controller.GetCurrentHowlUser(context)
 		g_user := user.Current(context)
 		logout, _ := user.LogoutURL(context, "/")
-		nup := NewUserPage{User:g_user.String(), Signout:logout}
+		nup := new(NewUserPage)
+		if hu == nil {
+			nup.User = g_user.String()
+			nup.Signout = logout
+		} else {
+			nup.User = hu.Uid
+			nup.Signout = logout
+			nup.Uid = hu.Uid
+			nup.Name = hu.Name
+			nup.Url = hu.Url
+			nup.Description = hu.About
+		}
 		renderTemplateFromFile(newUserTemplate, nup, w)
 		return
 	}
@@ -322,7 +343,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		                     Uid:r.FormValue("uid"),
 	                         Url:r.FormValue("url"), 
 	                         About:r.FormValue("about"),}
-		log.Println("Created new user profile for " + r.FormValue("name")) 
+		log.Println("Created new user profile for " + r.FormValue("uid")) 
 		_, _ = hu.Create(context)
 		req, _ := http.NewRequest("GET", "/", r.Body)
 		http.Redirect(w, req, "/", 302)
