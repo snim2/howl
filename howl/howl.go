@@ -31,21 +31,12 @@ import (
 
 /* init() routes requests to the appropriate handlers.
  *
- * The design of this API should be RESTful in the sense of (Fielding, 2005).
- *
  * INVARIANT: This should be the only init() method in the application.
  */
 func init() {
-	// RESTful interface.
-    http.HandleFunc("/user/([^/]+)/",	        view.UserHandler)
-    http.HandleFunc("/user",					view.UserHandler)
-    http.HandleFunc("/stream",					view.StreamHandler)
-    http.HandleFunc("/provider",                view.ProviderHandler)
-    http.HandleFunc("/datum",					view.DatumHandler)
-	// Especially for web browsers.
-	http.HandleFunc("/dashboard",				view.DashboardHandler)
-    http.HandleFunc("/",						view.DashboardHandler)
-	// Check the uniqueness of a uid in the datastore.
-	http.HandleFunc("/checkuid",				view.CheckUidHandler)
+	http.HandleFunc("/",				view.RestHandler)
+	// Browser-only hanlders.
+	http.HandleFunc("/dashboard",		view.DashboardHandler)
+	http.HandleFunc("/checkuid",		view.CheckUidHandler)
 }
 
