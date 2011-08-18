@@ -151,37 +151,6 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
 // *** Handlers below ***
 
 
-/* Handle the dashboard page (URL: /). 
- *
- * Should go to a page detailing the users details, their data streams
- * and so on.
- *
- * FIXME: Shared steams
- * FIXME: Owned / shared providers
- */
-func DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("DashboardHandler got request with method: " + r.Method)
-	log.Println(r.URL.String())
-	context, userobj := verifyLoggedIn(w, r)
-	// If the user has not created a profile the app Will have already
-	// redirected to login page.
-	if userobj == nil { return } 
-	// Get logout URL
-	logout, _ := user.LogoutURL(context, "/")
-	// Get streams owned by this user
-	log.Println("About to look for streams owned by user.")
-	streams := controller.GetStreamsOwnedByUser(context, w)
-	log.Println(fmt.Sprintf("Found %v data streams for current user.", len(streams)))
-	// TODO: Get streams shared with user
-	// TODO: Get providers owned by user
-	// TODO: Get providers shared with user
-	// Render.
-	dp := DashboardPage{User:userobj.Uid, Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
-	renderTemplateFromFile(context, dashTemplate, dp, w)
-	return
-}
-
-
 /* Check the uniqueness of a Uid.
  *
  * FIXME: RESTify this!
@@ -287,12 +256,40 @@ func RestHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+/* Handle the dashboard page (URL: /). 
+ *
+ * Should go to a page detailing the users details, their data streams
+ * and so on.
+ *
+ * FIXME: Shared steams
+ * FIXME: Owned / shared providers
+ */
+func DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("DashboardHandler got request with method: " + r.Method)
+	log.Println(r.URL.String())
+	context, userobj := verifyLoggedIn(w, r)
+	// If the user has not created a profile the app Will have already
+	// redirected to login page.
+	if userobj == nil { return } 
+	// Get logout URL
+	logout, _ := user.LogoutURL(context, "/")
+	// Get streams owned by this user
+	log.Println("About to look for streams owned by user.")
+	streams := controller.GetStreamsOwnedByUser(context, w)
+	log.Println(fmt.Sprintf("Found %v data streams for current user.", len(streams)))
+	// TODO: Get streams shared with user
+	// TODO: Get providers owned by user
+	// TODO: Get providers shared with user
+	// Render.
+	dp := DashboardPage{User:userobj.Uid, Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
+	renderTemplateFromFile(context, dashTemplate, dp, w)
+	return
+}
+
+
 /* Handle requests relating to streams. 
  *
  * By default present a view of a given data stream. 
- *
- * If URL is appended with ?action=edit or ?action=delete
- * then perform the appropriate CRUD action
  *
  * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
  */
@@ -321,9 +318,6 @@ func StreamHandler(w http.ResponseWriter, r *http.Request) {
  *
  * By default present a view of a given data provider. 
  *
- * If URL is appended with ?action=edit or ?action=delete
- * then perform the appropriate CRUD action
- *
  * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
  */
 func ProviderHandler(w http.ResponseWriter, r *http.Request) {
@@ -335,9 +329,6 @@ func ProviderHandler(w http.ResponseWriter, r *http.Request) {
  *
  * By default present a view of a given datum. 
  *
- * If URL is appended with ?action=edit or ?action=delete
- * then perform the appropriate CRUD action
- *
  * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
  */
 func DatumHandler(w http.ResponseWriter, r *http.Request) {
@@ -345,14 +336,13 @@ func DatumHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
-/* Page to configure a user profile.
+/* Page to display or configure a user profile.
  *
- * By default present a view of a given user. 
+ * URLs pointing here should be of the form: /user/$USERNAME/ to display or
+ * /user/$USERNAME/edit to edit a profile.
  *
- * If URL is appended with ?action=edit or ?action=delete
- * then perform the appropriate CRUD action
- *
-
+ * TODO: Add cases for PUT, DELETE, HEAD, OPTIONS
+ * TODO: What should happen to orphaned streams, providers and data on a user DELETE?
  */
 func UserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("UserHandler got request with method: " + r.Method)
