@@ -13,7 +13,7 @@
 
 	<div class="topbar">
 	  <div class="menu">
-		<a href="/dashboard">Dashboard</a> | <a href="/user/{User}/?action=edit">Profile</a> | Help
+		<a href="/dashboard">Dashboard</a> | <a href="/user/{User}/edit/">Profile</a> | Help
 	  </div>
 	  Hi, {User} | <a href="{Signout}">Sign out</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	</div>
@@ -22,10 +22,10 @@
 
 	  <div class="redblock">
 		<h2>Edit your profile</h2> <!--  -->
-	  	<form action="/user/?action=create" method="post" class="form">
+	  	<form action="/user/{Uid}/edit" method="post" class="form">
 	  	  <div>
 			<fieldset>
-			  <legend>Your profile</legend>
+			  <legend>{Uid} profile</legend>
 			  <p><label for="uid">Username</label><input type="text" id="uid" name="uid" value="{Uid}"/><br/>
 			  <span class="negative" style="display:block;" id="uid_required">Required</span>
 			  <span class="negative" style="display:none;" id="uid_not_ok">Username not available</span>
@@ -34,7 +34,7 @@
 	  		  <p><label for="url">Homepage</label><input type="text" name="url" value="{Url}"/></p>
 	  		  <p><label for="about">About you</label><textarea name="about" rows="5" cols="44">{Description}</textarea></p>
 
-	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Create"/></p>
+	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Update"/></p>
 			</fieldset>
 	  	  </div>
 	  	</form>

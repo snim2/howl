@@ -31,12 +31,24 @@ import (
     "model"
 )
 
-
-/* Retreive a user object in the model, from an appengine user object.
+/* Retreive a user object in the model, from a uid.
  */
-func GetCurrentHowlUser(context appengine.Context) (*model.HowlUser, *datastore.Key) {
+func GetUserFromUid (context appengine.Context, uid string) (*model.HowlUser, *datastore.Key) {
 	hus := make([]model.HowlUser, 0, 1)
-	email := user.Current(context).Email
+	query := datastore.NewQuery("HowlUser").Filter("Uid =", uid).Limit(1)
+	log.Println("Looking for user with id " + uid)
+	keys, err := new(model.HowlUser).Query(context, query, &hus)
+	if err != nil || len(keys) == 0 {
+		return nil, nil
+	}
+	return &hus[0], keys[0]
+}
+
+
+/* Retreive a user object in the model, from an email address.
+ */
+func GetUserFromEmail (context appengine.Context, email string) (*model.HowlUser, *datastore.Key) {
+	hus := make([]model.HowlUser, 0, 1)
 	query := datastore.NewQuery("HowlUser").Filter("Email =", email).Limit(1)
 	log.Println("Looking for user with address " + email)
 	keys, err := new(model.HowlUser).Query(context, query, &hus)
@@ -47,13 +59,21 @@ func GetCurrentHowlUser(context appengine.Context) (*model.HowlUser, *datastore.
 }
 
 
+/* Retreive a user object in the model, from an appengine user object.
+ */
+func GetCurrentHowlUser(context appengine.Context) (*model.HowlUser, *datastore.Key) {
+	email := user.Current(context).Email
+	return GetUserFromEmail(context, email)
+}
+
+
 /* Check the uniqueness of a username in the datastore.
  *
  * Returns true if there is no such uid in the datastore, thus the uid will be 
  * unique in the store.
  */
 func IsUidUnique(context appengine.Context, uid string) (bool) {
-	_, err := (&model.HowlUser{"", uid, "", "", "", model.Now()}).Read(context)
+	err := (&model.HowlUser{"", uid, "", "", "", model.Now()}).Read(context)
 	if err != nil {
 		log.Println("Datastore error retreiving HowlUser with uid " + uid + ": " + err.String())
 		return true

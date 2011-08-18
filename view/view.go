@@ -1,5 +1,7 @@
 /* Web version of the howl view (as in MVC).
  *
+ * FIXME: Remove spaghetti code and replace with Strategy Pattern.
+ *
  * Copyright (C) Sarah Mount, 2011.
  * 
  * This program is free software; you can redistribute it and/or
@@ -39,7 +41,6 @@ import (
 )
 
 
-
 import (
 	"model"
 	"controller"
@@ -54,7 +55,7 @@ var (
 	signInTemplate		= template.MustParseFile("sign.html",      nil)
 	streamTemplate		= template.MustParseFile("stream.html",    nil)
 	dashTemplate		= template.MustParseFile("dashboard.html", nil)
-	newUserTemplate		= template.MustParseFile("profile.html",   nil)
+	profileTemplate		= template.MustParseFile("profile.html",   nil)
 )
 
 
@@ -70,9 +71,9 @@ type DashboardPage struct {
 }
 
 
-/* Struct to store data for the newUserTemplate template.
+/* Struct to store data for the profileTemplate template.
  */
-type NewUserPage struct {
+type ProfilePage struct {
 	User		 string
 	Signout		 string
 	Uid          string
@@ -90,6 +91,7 @@ func serve404(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	io.WriteString(w, "Not Found")
+	log.Println("ERROR: 404 Not Found")
 }
 
 
@@ -97,11 +99,11 @@ func serve404(w http.ResponseWriter) {
  *
  * TODO: Add an error page template.
  */
-func serveError(c appengine.Context, w http.ResponseWriter, err os.Error) {
-	w.WriteHeader(http.StatusInternalServerError)
+func serveError(c appengine.Context, w http.ResponseWriter, code int, err os.Error) {
+	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	io.WriteString(w, "Internal Server Error")
-	c.Errorf("%v", err)
+	w.Write([]uint8(err.String()))
+	log.Println("ERROR: " + strconv.Itoa(code) + " " + err.String())
 }
 
 
@@ -111,10 +113,10 @@ func serveError(c appengine.Context, w http.ResponseWriter, err os.Error) {
  * @tempData usually a struct passed to the template 
  * @w the response writer that should render the template
  */
-func renderTemplateFromFile(templ *template.Template, tempData interface{}, w http.ResponseWriter) {
+func renderTemplateFromFile(context appengine.Context, templ *template.Template, tempData interface{}, w http.ResponseWriter) {
 	err := templ.Execute(w, tempData)
     if err != nil {
-        http.Error(w, err.String(), http.StatusInternalServerError) // 500
+        serveError(context, w, http.StatusInternalServerError, err) // 500
     }
 	return
 }
@@ -133,7 +135,7 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
     if g_user == nil {
 		url, _ := user.LoginURL(context, r.URL.String())
 		log.Println("No username, user not logged in with Google account.")
-		renderTemplateFromFile(signInTemplate, url, w)
+		renderTemplateFromFile(context, signInTemplate, url, w)
 		return context, nil
     }
 	userobj, _ := controller.GetCurrentHowlUser(context)
@@ -175,13 +177,14 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: Get providers shared with user
 	// Render.
 	dp := DashboardPage{User:userobj.Uid, Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
-	renderTemplateFromFile(dashTemplate, dp, w)
+	renderTemplateFromFile(context, dashTemplate, dp, w)
 	return
 }
 
 
 /* Check the uniqueness of a Uid.
  *
+ * FIXME: RESTify this!
  */
 func CheckUidHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("CheckUidHandler got request with method: " + r.Method)
@@ -216,14 +219,36 @@ func CheckUidHandler(w http.ResponseWriter, r *http.Request) {
 // ************************************************************************** //
 
 
+type ResponseMedia int
+const (
+	HTML ResponseMedia = iota
+	JSON
+	CSV
+	XML
+	ATOM
+)
+
 /* Route requests relating to the RESTful interfaces. 
  *
+ * FIXME: Remove nested Switch and replace with strategy pattern.
  */
 func RestHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("RestHandler got request with method: " + r.Method + " and URL: " + r.URL.String())
+	// Determine what media type to respond with.
+	responseTy := HTML
+	for _, mime := range r.Header["Accept"]  {
+		if mime == "text/html" {
+			responseTy = HTML
+			break
+		}
+	}
+
 	if r.URL.String() == "/" {
-		DashboardHandler(w, r)
-		return
+		switch responseTy {
+			default: 
+			DashboardHandler(w, r)
+			return
+		}
 	}
 	paths := strings.Split(r.URL.Path, "/", -1)
 	if len(paths) == 0 {
@@ -233,14 +258,29 @@ func RestHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Rest got initial path: " + paths[1])
 	switch paths[1] {
 	case "user":
-		UserHandler(w, r)
-		return
+		switch responseTy {
+			default: 
+			UserHandler(w, r)
+			return
+		}
 	case "stream":
-		StreamHandler(w, r)
-		return
+		switch responseTy {
+			default: 
+			StreamHandler(w, r)
+			return
+		}
 	case "provider":
-		ProviderHandler(w, r)
-		return
+		switch responseTy {
+			default: 
+			ProviderHandler(w, r)
+			return
+		}
+	case "datum":
+		switch responseTy {
+			default: 
+			DatumHandler(w, r)
+			return
+		}
 	}
 	serve404(w)
 	return
@@ -316,37 +356,69 @@ func DatumHandler(w http.ResponseWriter, r *http.Request) {
  */
 func UserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("UserHandler got request with method: " + r.Method)
-	if r.Method == "GET" {
-		context := appengine.NewContext(r)
-		hu, _ := controller.GetCurrentHowlUser(context)
-		g_user := user.Current(context)
-		logout, _ := user.LogoutURL(context, "/")
-		nup := new(NewUserPage)
-		if hu == nil {
-			nup.User = g_user.String()
-			nup.Signout = logout
-		} else {
-			nup.User = hu.Uid
-			nup.Signout = logout
-			nup.Uid = hu.Uid
-			nup.Name = hu.Name
-			nup.Url = hu.Url
-			nup.Description = hu.About
-		}
-		renderTemplateFromFile(newUserTemplate, nup, w)
+	paths := strings.Split(r.URL.Path, "/", -1)
+	if len(paths) < 2 {
+		serve404(w)
 		return
 	}
-	if r.Method == "POST" {
-		context := appengine.NewContext(r)
-		// Create model object
-		hu := model.HowlUser{Name:r.FormValue("name"), 
-		                     Uid:r.FormValue("uid"),
-	                         Url:r.FormValue("url"), 
-	                         About:r.FormValue("about"),}
-		log.Println("Created new user profile for " + r.FormValue("uid")) 
-		_, _ = hu.Create(context)
-		req, _ := http.NewRequest("GET", "/", r.Body)
-		http.Redirect(w, req, "/", 302)
+	context := appengine.NewContext(r)
+	g_user := user.Current(context)
+	logged_in_user, _ := controller.GetUserFromEmail(context, g_user.Email)
+
+	switch r.Method  {
+	case "POST":
+		// PRE: Can only edit username if you are logged in as that user
+		if r.FormValue("name") != logged_in_user.Uid {
+			serveError(context, w, http.StatusForbidden, os.NewError("Forbidden: You can only edit your own user profile"))
+			return
+		}
+		// User who is logged in has no profile, need to create one.
+		if logged_in_user == nil {
+			hu := model.HowlUser{Name:r.FormValue("name"), 
+		                         Uid:r.FormValue("uid"),
+	                             Url:r.FormValue("url"), 
+	                             About:r.FormValue("about"),}
+			log.Println("Created new user profile for " + r.FormValue("uid")) 
+			_, _ = hu.Create(context)
+			req, _ := http.NewRequest("GET", "/", r.Body)
+			http.Redirect(w, req, "/", http.StatusFound)
+		} else {
+			// User is logged in and editing existing profile.
+			logged_in_user.Name = r.FormValue("name")
+			logged_in_user.Uid = r.FormValue("uid")
+			logged_in_user.Url =  r.FormValue("url")
+			logged_in_user.Url = r.FormValue("about")
+			err := logged_in_user.Update(context)
+			if err != nil {
+				serveError(context, w, http.StatusInternalServerError, err)
+				return
+			}
+			req, _ := http.NewRequest("GET", "/", r.Body)
+			http.Redirect(w, req, "/", http.StatusFound)
+			return
+		}
+	case "GET":
+		uname := paths[2]
+		log.Println("Username: " + uname)
+		userobj, _ := controller.GetUserFromUid(context, uname)
+		logout, _ := user.LogoutURL(context, "/")
+		npp := new(ProfilePage)
+		if userobj == nil { // User has no profile
+			npp.User = g_user.String()
+			npp.Signout = logout
+		} else {
+			npp.User			= logged_in_user.Uid
+			npp.Signout			= logout
+			npp.Uid				= userobj.Uid
+			npp.Name			= userobj.Name
+			npp.Url				= userobj.Url
+			npp.Description		= userobj.About
+		}
+		renderTemplateFromFile(context, profileTemplate, npp, w)
+		return
+	default:
+		err := os.NewError("Could not understand your request: " + r.URL.Path)
+		serveError(context, w, http.StatusBadRequest, err)
 		return
 	}
 }

@@ -153,14 +153,14 @@ func (huser *HowlUser) Create(context appengine.Context) (*datastore.Key, os.Err
 }
 
 
-func (huser *HowlUser) Read(context appengine.Context) (*HowlUser, os.Error) {
+func (huser *HowlUser) Read(context appengine.Context) (os.Error) {
 	hu := new(HowlUser)
 	key := datastore.NewKey("HowlUser", huser.Uid, 0, nil) 
 	obj, err := get(context, key, "Error fetching HowlUser object: ", hu)
 	if obj, ok := obj.(HowlUser); ok {
-		return &obj, err
+		huser = &obj
 	}
-	return nil, err
+	return err
 }
 
 
