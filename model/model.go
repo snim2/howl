@@ -33,6 +33,14 @@ import (
 )
 
 
+const (
+	max_streams					= 100
+	max_providers				= 100
+	max_shared_streams			= 100
+	max_shared_providers		= 100
+)
+
+
 /* Return the current time since the UNIX epoch.
  */
 func Now() datastore.Time {
@@ -140,6 +148,10 @@ type HowlUser struct {
 	About				 string
 	Url                  string
 	LastLogin            datastore.Time
+	Streams              []*datastore.Key
+	Providers            []*datastore.Key
+	SharedStreams        []*datastore.Key
+	SharedProviders      []*datastore.Key
 }
 
 
@@ -147,6 +159,10 @@ func (huser *HowlUser) Create(context appengine.Context) (*datastore.Key, os.Err
 	log.Println("Creating user profile for " + huser.Name + " with id " + huser.Uid) 
 	huser.Email = user.Current(context).Email
 	huser.LastLogin = datastore.SecondsToTime(time.Seconds())
+	huser.Streams = make([]*datastore.Key, 0, max_streams)
+	huser.Providers = make([]*datastore.Key, 0, max_providers)
+	huser.SharedStreams = make([]*datastore.Key, 0, max_shared_streams)
+	huser.SharedProviders = make([]*datastore.Key, 0, max_shared_providers)
 	key := datastore.NewKey("HowlUser", huser.Uid, 0, nil)
 	err_s := "Error storing new user profile for " + huser.Uid
 	return put(context, key, err_s, huser)
@@ -314,11 +330,11 @@ func (sc *StreamConfiguration) Create(context appengine.Context) (*datastore.Key
  * name of the DataStream.
  */
 type DataStream struct { 
-	Owner				 *datastore.Key
+	Owner				 *datastore.Key    // Key of HowlUser object
 	Name				 string
 	Description			 string
 	Url                  string
-	AccessList			 []*datastore.Key    // Users with read/write access.
+	AccessList			 []*datastore.Key    // HowlUsers with write access.
 	Providers			 []*datastore.Key
 	Configuration		 *datastore.Key
 	Tags				 []*datastore.Key
@@ -350,7 +366,7 @@ type DataProvider struct {
 	Longditude	 float32
 	Elevation	 float32
 	Dimension	 string              // Unit of dimension
-	Data         []datastore.Key
+	Data         []*datastore.Key
 }
 
 
