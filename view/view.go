@@ -62,26 +62,12 @@ var (
 /* Struct to store data for the dashTemplate template.
  */
 type DashboardPage struct {
-	User            string
+	User            string // Usually a UID
 	Signout         string
 	OwnedStreams    []model.DataStream
 	SharedStreams   []model.DataStream
 	OwnedProviders  []model.DataProvider
 	SharedProviders []model.DataProvider
-}
-
-
-/* Struct to store data for the profileTemplate template.
- */
-type ProfilePage struct {
-	User		 string // User name to use in top bar
-	Signout		 string // Url to log out
-	Uid          string // User ID (if one has been created)
-	Name         string // Real name
-	Url          string // Profile URL
-	Description  string // Profile description
-	Action       string // Form action either /user/{Uid}/edit, or /user/new
-	Button       string // Label on button, usually Create or Update
 }
 
 
@@ -231,25 +217,25 @@ func RestHandler(w http.ResponseWriter, r *http.Request) {
 	case "user":
 		switch responseTy {
 			default: 
-			UserHandler(w, r)
+			UserHandler(w, r) // In file user.go
 			return
 		}
 	case "stream":
 		switch responseTy {
 			default: 
-			StreamHandler(w, r)
+			StreamHandler(w, r) // In file stream.go
 			return
 		}
 	case "provider":
 		switch responseTy {
 			default: 
-			ProviderHandler(w, r)
+			ProviderHandler(w, r) // In file provider.go
 			return
 		}
 	case "datum":
 		switch responseTy {
 			default: 
-			DatumHandler(w, r)
+			DatumHandler(w, r) // In file datum.go
 			return
 		}
 	}
@@ -286,143 +272,5 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	dp := DashboardPage{User:userobj.Uid, Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
 	renderTemplateFromFile(context, dashTemplate, dp, w)
 	return
-}
-
-
-/* Handle requests relating to streams. 
- *
- * By default present a view of a given data stream. 
- *
- * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
- */
-func StreamHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("StreamHandler got request with method: " + r.Method)
-	if r.Method == "POST" {
-		context, userobj := verifyLoggedIn(w, r)
-		if userobj == nil { return } // Will have already redirected to login page.
-		// Reformat form data
-		pkey, errkey := strconv.Atoi64(r.FormValue("pachubefeedid"))
-		if errkey != nil {
-			pkey = 0
-		}
-		// Get a list of tags
-		tagnames := strings.Split(r.FormValue("tags"), ",", -1)
-		// Create new objects in model
-		_ = controller.CreateDataStream(context, r.FormValue("name"), r.FormValue("description"), r.FormValue("url"), tagnames, r.FormValue("pachubekey"), pkey, r.FormValue("twitteraccount"), r.FormValue("twittertoken"), r.FormValue("twittertokensecret"))
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-	return
-}
-
-
-/* Handle requests relating to data providers. 
- *
- * By default present a view of a given data provider. 
- *
- * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
- */
-func ProviderHandler(w http.ResponseWriter, r *http.Request) {
-	return
-}
-
-
-/* Handle requests relating to data values. 
- *
- * By default present a view of a given datum. 
- *
- * FIXME Look at the request code, deal with PUT, DELETE, etc. separately
- */
-func DatumHandler(w http.ResponseWriter, r *http.Request) {
-	return
-}
-
-
-/* Page to display or configure a user profile.
- *
- * URLs pointing here should be of the form: /user/$USERNAME/ to display or
- * /user/$USERNAME/edit to edit a profile.
- *
- * TODO: Add cases for PUT, DELETE, HEAD, OPTIONS
- * TODO: What should happen to orphaned streams, providers and data on a user DELETE?
- */
-func UserHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("UserHandler got request with method: " + r.Method + " and path: " + r.URL.Path)
-	paths := strings.Split(r.URL.Path, "/", -1)
-	log.Println("UserHandler Paths has " + strconv.Itoa(len(paths)) + " items")
-	if len(paths) < 2 {
-		serve404(w)
-		return
-	}
-	context := appengine.NewContext(r)
-	g_user := user.Current(context)
-	logged_in_user, _ := controller.GetUserFromEmail(context, g_user.Email)
-	switch r.Method  {
-	case "POST":
-		// User is logged in but has yet to create a profile object
-		if logged_in_user == nil {
-			hu := model.HowlUser{Name:r.FormValue("name"), 
-		                         Uid:r.FormValue("uid"),
-	                             Url:r.FormValue("url"), 
-	                             About:r.FormValue("about")}
-			_, err := hu.Create(context)	
-			log.Println("Created new user profile for " + r.FormValue("uid")) 
-			if err != nil {
-				serveError(context, w, http.StatusInternalServerError, err)
-				return
-			}
-			req, _ := http.NewRequest("GET", "/", r.Body)
-			http.Redirect(w, req, "/", http.StatusFound)			
-			return
-		}
-		// PRE: Can only edit username if you are logged in as that user
-		if r.FormValue("uid") != logged_in_user.Uid {
-			serveError(context, w, http.StatusForbidden, os.NewError("Forbidden: You can only edit your own user profile"))
-			return
-		}
-		// User is logged in and editing existing profile.
-		logged_in_user.Name = r.FormValue("name")
-		logged_in_user.Uid = r.FormValue("uid")
-		logged_in_user.Url =  r.FormValue("url")
-		logged_in_user.Url = r.FormValue("about")
-		err := logged_in_user.Update(context)
-		if err != nil {
-			serveError(context, w, http.StatusInternalServerError, err)
-			return
-		}
-		req, _ := http.NewRequest("GET", "/", r.Body)
-		http.Redirect(w, req, "/", http.StatusFound)
-		return
-	case "GET":
-		logout, _ := user.LogoutURL(context, "/")
-		npp := new(ProfilePage)
-		if len(paths) > 2 { 
-			// User already exists and has a profile object
-			uname := paths[2]
-			log.Println("Username: " + uname)
-			userobj, _ := controller.GetUserFromUid(context, uname)
-			npp.User			= logged_in_user.Uid
-			npp.Signout			= logout
-			npp.Uid				= userobj.Uid
-			npp.Name			= userobj.Name
-			npp.Url				= userobj.Url
-			npp.Description		= userobj.About
-			npp.Action          = "/user/" + userobj.Uid + "/edit"
-			npp.Button          = "Update"
-		} else { 
-			// First time user, needs to create profile
-			log.Println("First time user.")
-			npp.User = g_user.String()
-			npp.Action = "/user/new"
-			npp.Button = "Create"
-			npp.Signout = logout
-		}
-		renderTemplateFromFile(context, profileTemplate, npp, w)
-		return
-	default:
-		err := os.NewError("Could not understand your request: " + r.URL.Path)
-		serveError(context, w, http.StatusBadRequest, err)
-		return
-	}
 }
 
