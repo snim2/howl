@@ -35,8 +35,7 @@ import (
  */
 func init() {
 	http.HandleFunc("/",				view.RestHandler)
-	// Browser-only hanlders.
-	http.HandleFunc("/dashboard",		view.DashboardHandler)
+	// Browser-only hanlders. FIXME: Remove and RESTify.
 	http.HandleFunc("/checkuid",		view.CheckUidHandler)
 }
 

@@ -151,7 +151,7 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
 // *** Handlers below ***
 
 
-/* Handle the dashboard page. 
+/* Handle the dashboard page (URL: /). 
  *
  * Should go to a page detailing the users details, their data streams
  * and so on.

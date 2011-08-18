@@ -12,7 +12,7 @@
 	<div class="topbar">
 	  <div class="menu">
 		<!-- FIXME -->
-		<a href="/dashboard">Dashboard</a> | <a href="/user/{User}/?action=edit">Profile</a> | Help
+		<a href="/">Dashboard</a> | <a href="/user/{User}/edit/">Profile</a> | Help
 	  </div>
 	  Hi, {User} | <a href="{Signout}">Sign out</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	</div>
@@ -22,7 +22,7 @@
 
 	  <div class="blueblock">
 	  	<h2><a name="blueblock">Create a new stream</a></h2>
-	  	<form action="/stream/?action=create" method="post" class="form">
+	  	<form action="/stream/new/" method="post" class="form">
 	  	  <div>
 			<fieldset>
 			  <legend>Create new stream</legend>
@@ -51,10 +51,10 @@
 				  {.end}
 				</select>
 				{.or}
-				You have no data providers defined, why not <a href="/provider/?action=create">create one!</a>
+				You have no data providers defined, why not <a href="/provider/new/">create one!</a>
 			  </p>
 			  {.end}
-	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Create"/></p>
+	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Update"/></p>
 			</fieldset>
 	  	  </div>
 	  	</form>
