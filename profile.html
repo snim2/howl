@@ -22,7 +22,7 @@
 
 	  <div class="redblock">
 		<h2>Edit your profile</h2> <!--  -->
-	  	<form action="/user/{Uid}/edit" method="post" class="form">
+	  	<form action="{Action}" method="post" class="form">
 	  	  <div>
 			<fieldset>
 			  <legend>{Uid} profile</legend>
@@ -34,7 +34,7 @@
 	  		  <p><label for="url">Homepage</label><input type="text" name="url" value="{Url}"/></p>
 	  		  <p><label for="about">About you</label><textarea name="about" rows="5" cols="44">{Description}</textarea></p>
 
-	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="Update"/></p>
+	  		  <p class="submit"><input type="submit" class="button" style="float:right;" value="{Button}"/></p>
 			</fieldset>
 	  	  </div>
 	  	</form>

@@ -74,12 +74,14 @@ type DashboardPage struct {
 /* Struct to store data for the profileTemplate template.
  */
 type ProfilePage struct {
-	User		 string
-	Signout		 string
-	Uid          string
-	Name         string
-	Url          string
-	Description  string
+	User		 string // User name to use in top bar
+	Signout		 string // Url to log out
+	Uid          string // User ID (if one has been created)
+	Name         string // Real name
+	Url          string // Profile URL
+	Description  string // Profile description
+	Action       string // Form action either /user/{Uid}/edit, or /user/new
+	Button       string // Label on button, usually Create or Update
 }
 
 
@@ -345,8 +347,9 @@ func DatumHandler(w http.ResponseWriter, r *http.Request) {
  * TODO: What should happen to orphaned streams, providers and data on a user DELETE?
  */
 func UserHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("UserHandler got request with method: " + r.Method)
+	log.Println("UserHandler got request with method: " + r.Method + " and path: " + r.URL.Path)
 	paths := strings.Split(r.URL.Path, "/", -1)
+	log.Println("UserHandler Paths has " + strconv.Itoa(len(paths)) + " items")
 	if len(paths) < 2 {
 		serve404(w)
 		return
@@ -354,55 +357,65 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	context := appengine.NewContext(r)
 	g_user := user.Current(context)
 	logged_in_user, _ := controller.GetUserFromEmail(context, g_user.Email)
-
 	switch r.Method  {
 	case "POST":
-		// PRE: Can only edit username if you are logged in as that user
-		if r.FormValue("name") != logged_in_user.Uid {
-			serveError(context, w, http.StatusForbidden, os.NewError("Forbidden: You can only edit your own user profile"))
-			return
-		}
-		// User who is logged in has no profile, need to create one.
+		// User is logged in but has yet to create a profile object
 		if logged_in_user == nil {
 			hu := model.HowlUser{Name:r.FormValue("name"), 
 		                         Uid:r.FormValue("uid"),
 	                             Url:r.FormValue("url"), 
-	                             About:r.FormValue("about"),}
+	                             About:r.FormValue("about")}
+			_, err := hu.Create(context)	
 			log.Println("Created new user profile for " + r.FormValue("uid")) 
-			_, _ = hu.Create(context)
-			req, _ := http.NewRequest("GET", "/", r.Body)
-			http.Redirect(w, req, "/", http.StatusFound)
-		} else {
-			// User is logged in and editing existing profile.
-			logged_in_user.Name = r.FormValue("name")
-			logged_in_user.Uid = r.FormValue("uid")
-			logged_in_user.Url =  r.FormValue("url")
-			logged_in_user.Url = r.FormValue("about")
-			err := logged_in_user.Update(context)
 			if err != nil {
 				serveError(context, w, http.StatusInternalServerError, err)
 				return
 			}
 			req, _ := http.NewRequest("GET", "/", r.Body)
-			http.Redirect(w, req, "/", http.StatusFound)
+			http.Redirect(w, req, "/", http.StatusFound)			
 			return
 		}
+		// PRE: Can only edit username if you are logged in as that user
+		if r.FormValue("uid") != logged_in_user.Uid {
+			serveError(context, w, http.StatusForbidden, os.NewError("Forbidden: You can only edit your own user profile"))
+			return
+		}
+		// User is logged in and editing existing profile.
+		logged_in_user.Name = r.FormValue("name")
+		logged_in_user.Uid = r.FormValue("uid")
+		logged_in_user.Url =  r.FormValue("url")
+		logged_in_user.Url = r.FormValue("about")
+		err := logged_in_user.Update(context)
+		if err != nil {
+			serveError(context, w, http.StatusInternalServerError, err)
+			return
+		}
+		req, _ := http.NewRequest("GET", "/", r.Body)
+		http.Redirect(w, req, "/", http.StatusFound)
+		return
 	case "GET":
-		uname := paths[2]
-		log.Println("Username: " + uname)
-		userobj, _ := controller.GetUserFromUid(context, uname)
 		logout, _ := user.LogoutURL(context, "/")
 		npp := new(ProfilePage)
-		if userobj == nil { // User has no profile
-			npp.User = g_user.String()
-			npp.Signout = logout
-		} else {
+		if len(paths) > 2 { 
+			// User already exists and has a profile object
+			uname := paths[2]
+			log.Println("Username: " + uname)
+			userobj, _ := controller.GetUserFromUid(context, uname)
 			npp.User			= logged_in_user.Uid
 			npp.Signout			= logout
 			npp.Uid				= userobj.Uid
 			npp.Name			= userobj.Name
 			npp.Url				= userobj.Url
 			npp.Description		= userobj.About
+			npp.Action          = "/user/" + userobj.Uid + "/edit"
+			npp.Button          = "Update"
+		} else { 
+			// First time user, needs to create profile
+			log.Println("First time user.")
+			npp.User = g_user.String()
+			npp.Action = "/user/new"
+			npp.Button = "Create"
+			npp.Signout = logout
 		}
 		renderTemplateFromFile(context, profileTemplate, npp, w)
 		return
