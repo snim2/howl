@@ -23,7 +23,6 @@ package view
 import (
 	"appengine"
     "appengine/user"
-	"fmt"
 	"http"
 	"io"
 	"json"
@@ -57,18 +56,6 @@ var (
 	dashTemplate		= template.MustParseFile("dashboard.html", nil)
 	profileTemplate		= template.MustParseFile("profile.html",   nil)
 )
-
-
-/* Struct to store data for the dashTemplate template.
- */
-type DashboardPage struct {
-	User            string // Usually a UID
-	Signout         string
-	OwnedStreams    []model.DataStream
-	SharedStreams   []model.DataStream
-	OwnedProviders  []model.DataProvider
-	SharedProviders []model.DataProvider
-}
 
 
 /* Serve a Not Found page.
@@ -134,9 +121,6 @@ func verifyLoggedIn(w http.ResponseWriter, r *http.Request) (appengine.Context, 
 	}
 	return context, userobj
 }
-
-
-// *** Handlers below ***
 
 
 /* Check the uniqueness of a Uid.
@@ -240,37 +224,6 @@ func RestHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	serve404(w)
-	return
-}
-
-
-/* Handle the dashboard page (URL: /). 
- *
- * Should go to a page detailing the users details, their data streams
- * and so on.
- *
- * FIXME: Shared steams
- * FIXME: Owned / shared providers
- */
-func DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("DashboardHandler got request with method: " + r.Method)
-	log.Println(r.URL.String())
-	context, userobj := verifyLoggedIn(w, r)
-	// If the user has not created a profile the app Will have already
-	// redirected to login page.
-	if userobj == nil { return } 
-	// Get logout URL
-	logout, _ := user.LogoutURL(context, "/")
-	// Get streams owned by this user
-	log.Println("About to look for streams owned by user.")
-	streams := controller.GetStreamsOwnedByUser(context, w)
-	log.Println(fmt.Sprintf("Found %v data streams for current user.", len(streams)))
-	// TODO: Get streams shared with user
-	// TODO: Get providers owned by user
-	// TODO: Get providers shared with user
-	// Render.
-	dp := DashboardPage{User:userobj.Uid, Signout:logout, OwnedStreams:streams, SharedStreams:nil, OwnedProviders:nil, SharedProviders:nil}
-	renderTemplateFromFile(context, dashTemplate, dp, w)
 	return
 }
 
