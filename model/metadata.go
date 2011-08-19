@@ -31,6 +31,33 @@ import (
 )
 
 
+/* A annotation describes a datum.
+ */
+type Annotation struct {
+	Text		 string
+}
+
+
+func (annotation *Annotation) Create(context appengine.Context) (*datastore.Key, os.Error) {
+	log.Println("Creating new annotation")
+	key := datastore.NewIncompleteKey("Annotation")
+	err_s := "Error storing new annotation "
+	return put(context, key, err_s, annotation)
+}
+
+
+func (*Annotation) Query(context appengine.Context, dsquery *datastore.Query, annotations *[]Annotation) ([]*datastore.Key, os.Error) {
+	err_s := "Error fetching Annotation object: "
+	keys, err := query(context, dsquery, annotations, err_s)
+	return keys, err
+}
+
+
+func (annotation *Annotation) String() (string) {
+	return annotation.Text
+}
+
+
 /* A comment is a message from a (usually human) Howl user.
  */
 type Comment struct {

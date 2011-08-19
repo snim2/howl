@@ -41,6 +41,7 @@ type Datum struct {
 	Timestamp	 datastore.Time
 	Value		 float64
 	Url			 string
+	Annotation   *datastore.Key
 }
 
 func (datum *Datum) Create(context appengine.Context) (*datastore.Key, os.Error) {
