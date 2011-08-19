@@ -14,7 +14,7 @@ DIAFLAGS=-e
 DOCS=docs
 MODEL=data_model
 
-GODOC=/usr/bin/godoc
+GODOC=$(GOBIN)/godoc
 GODOC_FLAGS=-timestamps=true -index -html
 
 DEVSERVER=dev_appserver.py 
